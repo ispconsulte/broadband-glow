@@ -1,21 +1,58 @@
 const isBrowser = () => typeof window !== "undefined";
 const memoryStore = new Map<string, string>();
 
+function getBrowserStorage() {
+  if (!isBrowser()) return null;
+
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 function clearCachedEntries() {
-  for (const currentKey of memoryStore.keys()) {
-    if (currentKey.startsWith("cache:")) memoryStore.delete(currentKey);
+  const browserStorage = getBrowserStorage();
+  if (browserStorage) {
+    for (let i = browserStorage.length - 1; i >= 0; i -= 1) {
+      const currentKey = browserStorage.key(i);
+      if (currentKey?.startsWith("cache:")) browserStorage.removeItem(currentKey);
+    }
+  }
+
+  for (const currentKey of Array.from(memoryStore.keys())) {
+    if (currentKey.startsWith("cache:")) {
+      memoryStore.delete(currentKey);
+    }
   }
 }
 
 function readRaw(key: string): string | null {
+  const browserStorage = getBrowserStorage();
+  if (browserStorage) {
+    const persisted = browserStorage.getItem(key);
+    if (persisted !== null) {
+      memoryStore.set(key, persisted);
+      return persisted;
+    }
+  }
+
   return memoryStore.get(key) ?? null;
 }
 
 function writeRaw(key: string, value: string) {
+  const browserStorage = getBrowserStorage();
+  if (browserStorage) {
+    browserStorage.setItem(key, value);
+  }
   memoryStore.set(key, value);
 }
 
 function removeRaw(key: string) {
+  const browserStorage = getBrowserStorage();
+  if (browserStorage) {
+    browserStorage.removeItem(key);
+  }
   memoryStore.delete(key);
 }
 
@@ -63,7 +100,12 @@ export const storage = {
   },
 
   keys(prefix = "") {
-    return Array.from(memoryStore.keys()).filter((key) => key.startsWith(prefix));
+    const browserStorage = getBrowserStorage();
+    const persistedKeys = browserStorage
+      ? Array.from({ length: browserStorage.length }, (_, index) => browserStorage.key(index)).filter((key): key is string => Boolean(key))
+      : [];
+
+    return Array.from(new Set([...persistedKeys, ...memoryStore.keys()])).filter((key) => key.startsWith(prefix));
   },
 };
 
