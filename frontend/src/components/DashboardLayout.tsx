@@ -73,6 +73,7 @@ function toNotifTask(task: Record<string, any>) {
     title,
     project,
     consultant,
+    responsibleId: task.responsible_id ?? task.user_id ?? null,
     statusKey: isDone ? "done" : isOverdue ? "overdue" : "pending",
     deadlineDate: deadline,
     deadlineIsSoon,
@@ -262,7 +263,8 @@ function DashboardInner() {
     notifTasks,
     session?.name,
     session?.role,
-    userId
+    userId,
+    session?.bitrixUserId,
   );
 
 

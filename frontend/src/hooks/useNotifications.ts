@@ -34,6 +34,7 @@ type TaskLike = {
   deadlineDate?: Date | null;
   deadlineIsSoon?: boolean;
   consultant?: string;
+  responsibleId?: string | number | null;
 };
 
 function buildTaskNotificationLink(task: TaskLike, own: boolean, kind: AppNotification["type"]) {
@@ -88,6 +89,7 @@ export function useNotifications(
   userName?: string,
   userRole?: string,
   userId?: string,
+  userBitrixId?: string | null,
 ) {
   const [readIds, setReadIds] = useState<Set<string>>(() => getCleanReadIds(userId));
 
@@ -103,6 +105,10 @@ export function useNotifications(
     const isPrivileged = ["admin", "gerente", "coordenador"].includes(userRole ?? "");
 
     const isOwnTask = (task: TaskLike): boolean => {
+      const responsibleId = String(task.responsibleId ?? "").trim();
+      const bitrixUserId = String(userBitrixId ?? "").trim();
+      if (responsibleId && bitrixUserId && responsibleId === bitrixUserId) return true;
+
       if (!userName) return false;
       const consultant = norm(task.consultant || "");
       const user = norm(userName);
@@ -257,7 +263,7 @@ export function useNotifications(
     });
 
     return items.slice(0, 50);
-  }, [tasks, readIds, userName, userRole, readKey]);
+  }, [tasks, readIds, userName, userRole, readKey, userBitrixId]);
 
   const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
 

@@ -42,6 +42,7 @@ import {
   formatSecondsHuman,
   isDeadlineSoon,
   parseDateValue,
+  collectTaskRelevantDates,
   normalizeTaskTitle,
   type TaskStatusKey,
 } from "@/modules/tasks/utils";
@@ -180,15 +181,8 @@ const filterByPeriod = (tasks: TaskView[], period: string) => {
   const days = period === "7d" ? 7 : period === "30d" ? 30 : 90;
   const threshold = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   return tasks.filter((task) => {
-    const created =
-      parseDateValue(task.raw["inserted_at"]) ||
-      parseDateValue(task.raw["updated_at"]) ||
-      parseDateValue(task.raw["created_at"]) ||
-      parseDateValue(task.raw["createdAt"]) ||
-      parseDateValue(task.raw["due_date"]) ||
-      parseDateValue(task.raw["dueDate"]) ||
-      parseDateValue(task.raw["deadline"]);
-    return created ? created >= threshold : false;
+    const relevantDates = collectTaskRelevantDates(task.raw);
+    return relevantDates.some((date) => date >= threshold);
   });
 };
 
@@ -672,24 +666,19 @@ export default function TarefasPage() {
     const byPeriod =
       period === "custom"
         ? scopedTasks.filter((task) => {
-            const created =
-              parseDateValue(task.raw["inserted_at"]) ||
-              parseDateValue(task.raw["updated_at"]) ||
-              parseDateValue(task.raw["created_at"]) ||
-              parseDateValue(task.raw["createdAt"]) ||
-              parseDateValue(task.raw["due_date"]) ||
-              parseDateValue(task.raw["dueDate"]) ||
-              parseDateValue(task.raw["deadline"]);
             const from = dateFrom ? parseDateValue(dateFrom) : null;
             const to = dateTo ? parseDateValue(dateTo) : null;
-            if (!created) return false;
-            if (from && created < from) return false;
-            if (to) {
-              const endOfDay = new Date(to);
-              endOfDay.setHours(23, 59, 59, 999);
-              if (created > endOfDay) return false;
-            }
-            return true;
+            const relevantDates = collectTaskRelevantDates(task.raw);
+            if (relevantDates.length === 0) return false;
+
+            const endOfDay = to ? new Date(to) : null;
+            if (endOfDay) endOfDay.setHours(23, 59, 59, 999);
+
+            return relevantDates.some((date) => {
+              if (from && date < from) return false;
+              if (endOfDay && date > endOfDay) return false;
+              return true;
+            });
           })
         : filterByPeriod(scopedTasks, period);
 
@@ -697,7 +686,9 @@ export default function TarefasPage() {
       const projectNormalized = (task.project || "").trim().toLowerCase();
       if (projectNormalized === "projeto indefinido") return false;
 
-      const matchesConsultant = consultant === "all" || task.consultant.toLowerCase() === consultant.toLowerCase();
+      const matchesConsultant =
+        consultant === "all" ||
+        normalizeComparableText(task.consultant) === normalizeComparableText(consultant);
       const matchesProject = effectiveProjectFilter.length === 0 || effectiveProjectFilter.some(p => task.project.toLowerCase().includes(p.toLowerCase()));
       const matchesStatus =
         status === "all"

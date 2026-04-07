@@ -57,6 +57,23 @@ export const parseDateValue = (value?: unknown): Date | null => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
+export const collectTaskRelevantDates = (task: Record<string, unknown>): Date[] => {
+  const candidates = [
+    task["deadline"],
+    task["due_date"],
+    task["dueDate"],
+    task["closed_date"],
+    task["updated_at"],
+    task["created_at"],
+    task["createdAt"],
+    task["inserted_at"],
+  ];
+
+  return candidates
+    .map((value) => parseDateValue(value))
+    .filter((value): value is Date => value instanceof Date);
+};
+
 export const getElapsedEffectiveDate = (value: {
   date_start?: unknown;
   created_date?: unknown;
