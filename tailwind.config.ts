@@ -57,6 +57,14 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        warning: "hsl(var(--warning))",
+        success: "hsl(var(--success))",
+        info: "hsl(var(--info))",
+      },
+      fontFamily: {
+        display: ["var(--font-display)"],
+        body: ["var(--font-body)"],
+        mono: ["var(--font-display)"],
       },
       borderRadius: {
         lg: "var(--radius)",
