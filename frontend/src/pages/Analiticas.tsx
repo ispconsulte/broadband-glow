@@ -7,7 +7,6 @@ import { useElapsedTimes } from "@/modules/tasks/api/useElapsedTimes";
 import { useProjectHours } from "@/modules/tasks/api/useProjectHours";
 import { useAnalyticsData } from "@/modules/analytics/hooks/useAnalyticsData";
 import { classifyTask } from "@/modules/analytics/hooks/useAnalyticsData";
-import { getElapsedEffectiveDate } from "@/modules/tasks/utils";
 import PageSkeleton from "@/components/ui/PageSkeleton";
 import AnalyticsPageHeader from "@/modules/analytics/components/AnalyticsPageHeader";
 import DataErrorCard from "@/components/ui/DataErrorCard";
@@ -251,14 +250,7 @@ export default function AnaliticasPage() {
 
   const {
     projects,
-    uniqueClients,
-    totalDone,
-    totalPending,
-    totalOverdue,
-    totalHours,
     toggleFavorite,
-    userTaskCount,
-    userTimes,
     userTasks,
   } = useAnalyticsData(accessFilteredTasks, projectHours, times, effectiveUser);
 
@@ -327,25 +319,6 @@ export default function AnaliticasPage() {
   }, [userTasks, filters.status, filters.projectIds]);
 
   // Period-aware hours
-  const periodHours = useMemo(() => {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - periodDays);
-    const cutoffMs = cutoff.getTime();
-
-    let totalSecs = 0;
-    userTimes.forEach((t) => {
-      const effectiveDate = getElapsedEffectiveDate(t);
-      if (effectiveDate) {
-        if (effectiveDate.getTime() >= cutoffMs) totalSecs += (t.seconds ?? 0);
-      } else {
-        totalSecs += (t.seconds ?? 0);
-      }
-    });
-    return Math.round((totalSecs / 3600) * 10) / 10;
-  }, [userTimes, periodDays]);
-
-  const activeProjects = useMemo(() => projects.filter((p) => p.isActive).length, [projects]);
-
   // "Projetos que faço parte" = projects where the user is the RESPONSIBLE (has tasks assigned)
   // NOT just projects they have access to view
   const myProjectIds = useMemo(() => {
@@ -469,6 +442,22 @@ export default function AnaliticasPage() {
     });
   }, [projects, contractedHoursData]);
 
+  const displayedProjects = useMemo(() => {
+    if (filters.projectIds.length === 0) return projectsWithContracted;
+    const idSet = new Set(filters.projectIds);
+    return projectsWithContracted.filter((project) => idSet.has(project.projectId));
+  }, [projectsWithContracted, filters.projectIds]);
+
+  const displayedProjectHours = useMemo(
+    () => displayedProjects.reduce((sum, project) => sum + project.hoursUsed, 0),
+    [displayedProjects],
+  );
+
+  const displayedActiveProjects = useMemo(
+    () => displayedProjects.filter((project) => project.isActive).length,
+    [displayedProjects],
+  );
+
   const handleProjectClick = useCallback((project: ProjectAnalytics) => {
     setDrawerProject(project);
   }, []);
@@ -547,12 +536,12 @@ export default function AnaliticasPage() {
 
         {/* KPI Cards */}
         <AnalyticsKpiCards
-          clients={projects.length}
-          activeProjects={activeProjects}
-          totalHours={periodHours > 0 ? periodHours : totalHours}
-          totalTasks={userTaskCount}
-          doneCount={totalDone}
-          overdueCount={totalOverdue}
+          clients={displayedProjects.length}
+          activeProjects={displayedActiveProjects}
+          totalHours={displayedProjectHours}
+          totalTasks={filteredTasks.length}
+          doneCount={filteredTasks.filter((task) => classifyTask(task) === "done").length}
+          overdueCount={filteredTasks.filter((task) => classifyTask(task) === "overdue").length}
           loading={loading}
         />
 
@@ -570,7 +559,7 @@ export default function AnaliticasPage() {
 
         {/* Projects list — grouped by client */}
         <AnalyticsProjectList
-          projects={projectsWithContracted}
+          projects={displayedProjects}
           onToggleFavorite={toggleFavorite}
           onProjectClick={handleProjectClick}
           onEditHours={isAdmin ? handleEditHours : undefined}
@@ -644,10 +633,10 @@ export default function AnaliticasPage() {
               projects: projectRows,
               totals: {
                 projects: projectRows.length,
-                tasks: userTaskCount,
-                done: totalDone,
-                overdue: totalOverdue,
-                hours: periodHours > 0 ? periodHours : totalHours,
+                tasks: filteredTasks.length,
+                done: filteredTasks.filter((task) => classifyTask(task) === "done").length,
+                overdue: filteredTasks.filter((task) => classifyTask(task) === "overdue").length,
+                hours: displayedProjectHours,
               },
             });
           }}

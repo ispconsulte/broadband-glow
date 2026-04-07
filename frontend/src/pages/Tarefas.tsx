@@ -689,7 +689,10 @@ export default function TarefasPage() {
       const matchesConsultant =
         consultant === "all" ||
         normalizeComparableText(task.consultant) === normalizeComparableText(consultant);
-      const matchesProject = effectiveProjectFilter.length === 0 || effectiveProjectFilter.some(p => task.project.toLowerCase().includes(p.toLowerCase()));
+      const normalizedProject = normalizeComparableText(task.project);
+      const matchesProject =
+        effectiveProjectFilter.length === 0 ||
+        effectiveProjectFilter.some((projectName) => normalizeComparableText(projectName) === normalizedProject);
       const matchesStatus =
         status === "all"
           ? true
@@ -827,7 +830,7 @@ export default function TarefasPage() {
   }, [filteredTasks]);
 
   // Reset page on filter change
-  useEffect(() => { setPage(1); }, [debouncedSearch, status, deadline, period, dateFrom, dateTo, deadlineTo, consultant]);
+  useEffect(() => { setPage(1); }, [debouncedSearch, status, deadline, period, dateFrom, dateTo, deadlineTo, consultant, effectiveProjectFilter]);
 
   const totalHours = stats.totalSeconds / 3600;
   const totalHoursLabel = formatSecondsHuman(stats.totalSeconds);
