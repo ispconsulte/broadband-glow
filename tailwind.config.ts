@@ -61,6 +61,11 @@ export default {
         success: "hsl(var(--success))",
         info: "hsl(var(--info))",
       },
+      fontFamily: {
+        display: ["var(--font-display)"],
+        body: ["var(--font-body)"],
+        mono: ["var(--font-display)"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
