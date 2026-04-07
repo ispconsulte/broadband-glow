@@ -152,7 +152,33 @@ export default function TesteRoiPage() {
 
   const roi = useRoiData({ accessToken: session?.accessToken, period: filters.period, projectId: filters.projectId });
   const hasProjectChartData = roi.filteredProjects.some((p) => p.hoursContracted > 0 || p.hoursUsed > 0);
-  const roiCount = roi.summary?.projects.filter((p) => p.roiPercent != null).length ?? 0;
+  const visibleSummary = useMemo(() => {
+    if (!roi.summary) return null;
+
+    const totalContracted = roi.filteredProjects.reduce((sum, project) => sum + project.hoursContracted, 0);
+    const totalUsed = roi.filteredProjects.reduce((sum, project) => sum + project.hoursUsed, 0);
+    const overallVariance = totalContracted > 0
+      ? Math.round(((totalUsed - totalContracted) / totalContracted) * 1000) / 10
+      : 0;
+
+    return {
+      totalContracted,
+      totalUsed,
+      overallVariance,
+      projects: roi.filteredProjects,
+    };
+  }, [roi.filteredProjects, roi.summary]);
+  const roiCount = visibleSummary?.projects.filter((p) => p.roiPercent != null).length ?? 0;
+  const visibleAvgRoi = useMemo(() => {
+    const roiProjects = visibleSummary?.projects.filter((project) => project.roiPercent != null) ?? [];
+    if (!roiProjects.length) return null;
+    return Math.round(
+      (roiProjects.reduce((sum, project) => sum + (project.roiPercent ?? 0), 0) / roiProjects.length) * 10,
+    ) / 10;
+  }, [visibleSummary]);
+  const selectedProjectLabel = filters.projectId && roi.filteredProjects.length === 1
+    ? roi.filteredProjects[0].projectName
+    : null;
 
   if (loadingSession) return <PageSkeleton variant="analiticas" />;
 
@@ -169,7 +195,7 @@ export default function TesteRoiPage() {
     );
   }
 
-  const s = roi.summary;
+  const s = visibleSummary;
   const varianceColor = s
     ? s.overallVariance > 10
       ? "hsl(0 84% 60%)"
@@ -308,7 +334,13 @@ export default function TesteRoiPage() {
               <KpiCard
                 label="Horas Orçadas"
                 value={s.totalContracted > 0 ? `${Math.round(s.totalContracted)}h` : "Não encontrado"}
-                sub={s.projects.length > 0 ? `${s.projects.length} projetos` : "Sem projetos"}
+                sub={
+                  selectedProjectLabel
+                    ? selectedProjectLabel
+                    : s.projects.length > 0
+                    ? `${s.projects.length} projetos`
+                    : "Sem projetos"
+                }
                 icon={Clock}
                 accent="hsl(262 83% 58%)"
                 delay={0.1}
@@ -337,13 +369,19 @@ export default function TesteRoiPage() {
               />
               <KpiCard
                 label="ROI Médio"
-                value={roi.hasFinancials && roi.avgRoi != null ? `${roi.avgRoi > 0 ? "+" : ""}${roi.avgRoi}%` : "Não encontrado"}
-                sub={roi.hasFinancials ? `${roiCount} com dados` : "Sem base financeira"}
+                value={roi.hasFinancials && visibleAvgRoi != null ? `${visibleAvgRoi > 0 ? "+" : ""}${visibleAvgRoi}%` : "Não encontrado"}
+                sub={
+                  roi.hasFinancials
+                    ? selectedProjectLabel
+                      ? `${roiCount > 0 ? "ROI encontrado" : "Sem ROI neste projeto"}`
+                      : `${roiCount} com dados`
+                    : "Sem base financeira"
+                }
                 icon={DollarSign}
                 accent={
-                  roi.avgRoi != null && roi.avgRoi > 0
+                  visibleAvgRoi != null && visibleAvgRoi > 0
                     ? "hsl(160 84% 39%)"
-                    : roi.avgRoi != null && roi.avgRoi < 0
+                    : visibleAvgRoi != null && visibleAvgRoi < 0
                     ? "hsl(0 84% 60%)"
                     : "hsl(0 0% 50%)"
                 }
@@ -351,10 +389,10 @@ export default function TesteRoiPage() {
               />
               <KpiCard
                 label="Alertas"
-                value={String(roi.overBudgetProjects)}
-                sub={`${roi.projectsWithoutContractedHours} sem orçamento`}
+                value={String(s.projects.filter((project) => project.variancePercent > 10).length)}
+                sub={`${s.projects.filter((project) => project.hoursContracted <= 0).length} sem orçamento`}
                 icon={ShieldAlert}
-                accent={roi.overBudgetProjects > 0 ? "hsl(0 84% 60%)" : "hsl(160 84% 39%)"}
+                accent={s.projects.some((project) => project.variancePercent > 10) ? "hsl(0 84% 60%)" : "hsl(160 84% 39%)"}
                 delay={0.22}
               />
             </div>
