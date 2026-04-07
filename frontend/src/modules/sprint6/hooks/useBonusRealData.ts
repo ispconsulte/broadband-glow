@@ -19,6 +19,7 @@ import {
   BONUS_EVALUATION_CATEGORIES,
   BONUS_MANUAL_WEIGHTS,
   getBonusCeiling,
+  isBonusEligibleConsultant,
   normalizeBonusRole,
   normalizeBonusSeniority,
 } from "@/modules/sprint6/bonusEvaluation";
@@ -609,6 +610,7 @@ export function useBonusRealData(period: RoiPeriod = "180d", accessToken?: strin
           null;
 
         if (!matchedUser) return null;
+        if (!isBonusEligibleConsultant(matchedUser.name)) return null;
 
         const linkedHealth = Array.from(acc.clientNames)
           .map((clientName) => healthByName.get(clientName.trim().toLowerCase()))

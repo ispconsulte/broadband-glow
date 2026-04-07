@@ -3,6 +3,18 @@ export type BonusSeniority = "junior" | "pleno" | "senior" | null;
 export type BonusEvaluationCategory = "hard_skill_manual" | "soft_skill" | "people_skill";
 export type BonusEvaluationStatus = "draft" | "submitted";
 
+const normalizeBonusPersonName = (value?: string | null) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+const BONUS_INELIGIBLE_CONSULTANT_NAMES = new Set([
+  normalizeBonusPersonName("Jaciara Bonicenha"),
+  normalizeBonusPersonName("Renato Moura"),
+]);
+
 export type BonusEvaluationSubtopicDefinition = {
   key: string;
   label: string;
@@ -117,6 +129,12 @@ export function normalizeBonusSeniority(value?: string | null): BonusSeniority {
   if (seniority === "pleno") return "pleno";
   if (seniority === "senior" || seniority === "sênior") return "senior";
   return null;
+}
+
+export function isBonusEligibleConsultant(name?: string | null) {
+  const normalized = normalizeBonusPersonName(name);
+  if (!normalized) return true;
+  return !BONUS_INELIGIBLE_CONSULTANT_NAMES.has(normalized);
 }
 
 export function getBonusCeiling(seniority?: string | null) {

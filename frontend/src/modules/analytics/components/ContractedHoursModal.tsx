@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Clock, Save, AlertCircle, TrendingUp, Zap } from "lucide-react";
 import type { ProjectAnalytics } from "../types";
@@ -38,6 +38,12 @@ export default function ContractedHoursModal({
 
   const targetProject = project ?? (clientProjects?.[0] ?? null);
   if (!targetProject) return null;
+
+  useEffect(() => {
+    setHours(currentHours > 0 ? String(currentHours) : "");
+    setNotes("");
+    setError("");
+  }, [currentHours, targetProject.projectId, clientProjects?.length]);
 
   const totalUsed = isClientMode
     ? clientProjects!.reduce((s, p) => s + p.hoursUsed, 0)
