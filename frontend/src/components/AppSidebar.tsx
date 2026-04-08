@@ -296,12 +296,12 @@ export function AppSidebar({
             <nav className="flex flex-col gap-0.5">
               {collapsed ? (
                 <>
-                  {canAccess("analiticas") && <SidebarNavItem to="/analiticas" icon={BarChart3} label="Analíticas" iconColor="hsl(280 70% 55%)" />}
-                  {canAccessBonus && <SidebarNavItem to="/admin/testes/bonificacao" icon={BadgeDollarSign} label="Bonificação" iconColor="hsl(45 90% 55%)" />}
-                  {canAccess("calendario") && <SidebarNavItem to="/calendario" icon={CalendarDays} label="Calendário" iconColor="hsl(160 84% 39%)" />}
-                  {canAccessClientes && <SidebarNavItem to="/admin/testes/clientes" icon={Contact} label="Página do Cliente" iconColor="hsl(200 75% 50%)" />}
-                  {canAccess("gamificacao") && <SidebarNavItem to="/gamificacao" icon={Trophy} label="Ranking" iconColor="hsl(45 90% 55%)" />}
                   {canAccess("tarefas") && <SidebarNavItem to="/tarefas" icon={ListTodo} label="Tarefas" iconColor="hsl(38 92% 50%)" />}
+                  {canAccess("analiticas") && <SidebarNavItem to="/analiticas" icon={BarChart3} label="Analíticas" iconColor="hsl(280 70% 55%)" />}
+                  {canAccessClientes && <SidebarNavItem to="/admin/testes/clientes" icon={Contact} label="Página do Cliente" iconColor="hsl(200 75% 50%)" />}
+                  {canAccess("calendario") && <SidebarNavItem to="/calendario" icon={CalendarDays} label="Calendário" iconColor="hsl(160 84% 39%)" />}
+                  {canAccessBonus && <SidebarNavItem to="/admin/testes/bonificacao" icon={BadgeDollarSign} label="Bonificação" iconColor="hsl(45 90% 55%)" />}
+                  {canAccess("gamificacao") && <SidebarNavItem to="/gamificacao" icon={Trophy} label="Ranking" iconColor="hsl(45 90% 55%)" />}
                 </>
               ) : (
                 <>
@@ -323,19 +323,14 @@ export function AppSidebar({
 
                   {(openSection === "management" || isManagementActive) && (
                     <div className="ml-[18px] mt-0.5 flex flex-col gap-0.5 border-l-2 border-white/10 pl-3">
+                      {canAccess("tarefas") && (
+                        <NavLink to="/tarefas" className={SIDEBAR_SUBLINK} activeClassName="!text-white !bg-white/[0.1] !rounded-xl">
+                          <ListTodo className="h-4 w-4" style={{ color: "hsl(38 92% 50%)" }} /><span>Tarefas</span>
+                        </NavLink>
+                      )}
                       {canAccess("analiticas") && (
                         <NavLink to="/analiticas" className={SIDEBAR_SUBLINK} activeClassName="!text-white !bg-white/[0.1] !rounded-xl">
                           <BarChart3 className="h-4 w-4" style={{ color: "hsl(280 70% 55%)" }} /><span>Analíticas</span>
-                        </NavLink>
-                      )}
-                      {canAccessBonus && (
-                        <NavLink to="/admin/testes/bonificacao" className={SIDEBAR_SUBLINK} activeClassName="!text-white !bg-white/[0.1] !rounded-xl">
-                          <BadgeDollarSign className="h-4 w-4" style={{ color: "hsl(45 90% 55%)" }} /><span>Bonificação</span>
-                        </NavLink>
-                      )}
-                      {canAccess("calendario") && (
-                        <NavLink to="/calendario" className={SIDEBAR_SUBLINK} activeClassName="!text-white !bg-white/[0.1] !rounded-xl">
-                          <CalendarDays className="h-4 w-4" style={{ color: "hsl(160 84% 39%)" }} /><span>Calendário</span>
                         </NavLink>
                       )}
                       {canAccessClientes && (
@@ -343,14 +338,19 @@ export function AppSidebar({
                           <Contact className="h-4 w-4" style={{ color: "hsl(200 75% 50%)" }} /><span>Página do Cliente</span>
                         </NavLink>
                       )}
+                      {canAccess("calendario") && (
+                        <NavLink to="/calendario" className={SIDEBAR_SUBLINK} activeClassName="!text-white !bg-white/[0.1] !rounded-xl">
+                          <CalendarDays className="h-4 w-4" style={{ color: "hsl(160 84% 39%)" }} /><span>Calendário</span>
+                        </NavLink>
+                      )}
+                      {canAccessBonus && (
+                        <NavLink to="/admin/testes/bonificacao" className={SIDEBAR_SUBLINK} activeClassName="!text-white !bg-white/[0.1] !rounded-xl">
+                          <BadgeDollarSign className="h-4 w-4" style={{ color: "hsl(45 90% 55%)" }} /><span>Bonificação</span>
+                        </NavLink>
+                      )}
                       {canAccess("gamificacao") && (
                         <NavLink to="/gamificacao" className={SIDEBAR_SUBLINK} activeClassName="!text-white !bg-white/[0.1] !rounded-xl">
                           <Trophy className="h-4 w-4" style={{ color: "hsl(45 90% 55%)" }} /><span>Ranking</span>
-                        </NavLink>
-                      )}
-                      {canAccess("tarefas") && (
-                        <NavLink to="/tarefas" className={SIDEBAR_SUBLINK} activeClassName="!text-white !bg-white/[0.1] !rounded-xl">
-                          <ListTodo className="h-4 w-4" style={{ color: "hsl(38 92% 50%)" }} /><span>Tarefas</span>
                         </NavLink>
                       )}
                     </div>
