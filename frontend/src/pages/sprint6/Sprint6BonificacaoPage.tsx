@@ -130,43 +130,35 @@ export default function Sprint6BonificacaoPage() {
 
         <div className="space-y-5">
 
-        {/* ── Hero Header ──────────────────────────────────────────── */}
+        {/* ── Hero Header (consistent with Analytics) ──────────────── */}
         <div
-          className="relative overflow-hidden rounded-2xl border border-white/[0.07] p-5 sm:p-6 lg:p-7"
+          className="relative overflow-hidden rounded-2xl border border-white/[0.07]"
           style={{
-            background: "linear-gradient(145deg, hsl(222 40% 9% / 0.92), hsl(228 36% 8% / 0.72))",
+            background: "linear-gradient(135deg, hsl(260 30% 11%) 0%, hsl(262 35% 15%) 40%, hsl(270 25% 12%) 100%)",
           }}
         >
-          <div
-            className="pointer-events-none absolute inset-y-0 right-0 w-[40%]"
-            style={{ background: "radial-gradient(circle at center, hsl(234 89% 64% / 0.14), transparent 65%)" }}
-          />
-          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-400/25 bg-emerald-500/10 shrink-0">
-                  <Crown className="h-5 w-5 text-emerald-400" />
+          <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 p-4 sm:p-5 md:px-6 md:py-5">
+            <div className="flex items-center gap-3.5 flex-1 min-w-0">
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.08] shrink-0 backdrop-blur-sm shadow-lg shadow-black/30"
+                style={{
+                  background: "linear-gradient(145deg, hsl(45 80% 30% / 0.5), hsl(45 60% 20% / 0.4))",
+                }}
+              >
+                <Crown className="h-5 w-5 text-amber-400" />
               </div>
-              <div className="min-w-0">
-                <h1 className="text-xl font-bold text-foreground tracking-tight sm:text-2xl">
-                  Painel de Bonificação
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground tracking-tight leading-tight">
+                  Bonificação
                 </h1>
-                <p className="text-xs text-white/40 mt-0.5 leading-relaxed">
+                <p className="mt-0.5 text-xs sm:text-sm text-white/35 line-clamp-1">
                   Ranking, payout e impacto financeiro
+                  {topPerformer && !hideMonetary && (
+                    <span className="text-white/20"> · Top: {topPerformer.name} {money(topPerformer.payout)}</span>
+                  )}
                 </p>
               </div>
             </div>
-            {topPerformer && !hideMonetary && (
-              <div className="flex items-center gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] px-4 py-2.5 shrink-0">
-                  <Crown className="h-4 w-4 shrink-0 text-amber-400" />
-                <p className="text-xs font-semibold uppercase tracking-wider text-amber-400/60">
-                  Top
-                </p>
-                <p className="truncate text-sm font-semibold text-foreground">{topPerformer.name}</p>
-                <p className="text-base font-bold text-amber-300 ml-2">
-                  {money(topPerformer.payout)}
-                </p>
-              </div>
-            )}
           </div>
         </div>
 
