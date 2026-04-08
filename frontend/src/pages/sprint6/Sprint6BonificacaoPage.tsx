@@ -153,9 +153,6 @@ export default function Sprint6BonificacaoPage() {
                 </h1>
                 <p className="mt-0.5 text-xs sm:text-sm text-white/35 line-clamp-1">
                   Ranking, payout e impacto financeiro
-                  {topPerformer && !hideMonetary && (
-                    <span className="text-white/20"> · Top: {topPerformer.name} {money(topPerformer.payout)}</span>
-                  )}
                 </p>
               </div>
             </div>
