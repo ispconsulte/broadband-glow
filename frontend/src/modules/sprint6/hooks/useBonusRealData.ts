@@ -18,6 +18,7 @@ import {
   averageNumbers,
   BONUS_EVALUATION_CATEGORIES,
   BONUS_MANUAL_WEIGHTS,
+  getBonusCategoryPayoutFromScore,
   getBonusCeiling,
   isBonusEligibleConsultant,
   normalizeBonusRole,
@@ -492,9 +493,9 @@ export function useBonusRealData(period: RoiPeriod = "180d", accessToken?: strin
         hardManualScore,
         softSkillScore,
         peopleSkillScore,
-        hardManualPayout: hardManualScore != null ? Math.round(hardManualScore * BONUS_EVALUATION_CATEGORIES.hard_skill_manual.payoutPerPoint) : null,
-        softSkillPayout: softSkillScore != null ? Math.round(softSkillScore * BONUS_EVALUATION_CATEGORIES.soft_skill.payoutPerPoint) : null,
-        peopleSkillPayout: peopleSkillScore != null ? Math.round(peopleSkillScore * BONUS_EVALUATION_CATEGORIES.people_skill.payoutPerPoint) : null,
+        hardManualPayout: null,
+        softSkillPayout: null,
+        peopleSkillPayout: null,
         lastSubmittedAt: rowsToUse.map((row) => row.submitted_at).sort((a, b) => b.localeCompare(a))[0] ?? null,
         rows: rowsToUse,
       });
@@ -636,7 +637,7 @@ export function useBonusRealData(period: RoiPeriod = "180d", accessToken?: strin
         const maxBonus = getBonusCeiling(capacityMeta?.seniority ?? matchedUser.seniority ?? null);
         const coordinatorUserId = coordinatorBySubordinateId.get(matchedUser.id) ?? null;
         const coordinatorName = coordinatorUserId ? activeUsersById.get(coordinatorUserId)?.name ?? null : null;
-        const manualEvaluation = manualEvaluationsByUserId.get(matchedUser.id) ?? {
+        const baseManualEvaluation = manualEvaluationsByUserId.get(matchedUser.id) ?? {
           hasManualEvaluation: false,
           status: "none",
           periodKey: null,
@@ -648,6 +649,12 @@ export function useBonusRealData(period: RoiPeriod = "180d", accessToken?: strin
           peopleSkillPayout: null,
           lastSubmittedAt: null,
           rows: [],
+        };
+        const manualEvaluation = {
+          ...baseManualEvaluation,
+          hardManualPayout: getBonusCategoryPayoutFromScore("hard_skill_manual", baseManualEvaluation.hardManualScore, capacityMeta?.seniority ?? matchedUser.seniority ?? null),
+          softSkillPayout: getBonusCategoryPayoutFromScore("soft_skill", baseManualEvaluation.softSkillScore, capacityMeta?.seniority ?? matchedUser.seniority ?? null),
+          peopleSkillPayout: getBonusCategoryPayoutFromScore("people_skill", baseManualEvaluation.peopleSkillScore, capacityMeta?.seniority ?? matchedUser.seniority ?? null),
         };
 
         const card: BonusConsultantCard = {

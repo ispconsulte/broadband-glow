@@ -34,19 +34,21 @@ export const BONUS_MANUAL_WEIGHTS = {
   peopleSkill: 0.2,
 } as const;
 
+export const BONUS_MANUAL_CATEGORY_WEIGHTS: Record<BonusEvaluationCategory, number> = {
+  hard_skill_manual: BONUS_MANUAL_WEIGHTS.hardManual,
+  soft_skill: BONUS_MANUAL_WEIGHTS.softSkill,
+  people_skill: BONUS_MANUAL_WEIGHTS.peopleSkill,
+};
+
 export const BONUS_EVALUATION_CATEGORIES: Record<
   BonusEvaluationCategory,
   {
     label: string;
-    payoutPerPoint: number;
-    maxPayout: number;
     subtopics: BonusEvaluationSubtopicDefinition[];
   }
 > = {
   hard_skill_manual: {
     label: "Hard Skill Manual",
-    payoutPerPoint: 2.5,
-    maxPayout: 250,
     subtopics: [
       {
         key: "qualidade_tecnica",
@@ -67,8 +69,6 @@ export const BONUS_EVALUATION_CATEGORIES: Record<
   },
   soft_skill: {
     label: "Soft Skills",
-    payoutPerPoint: 3,
-    maxPayout: 300,
     subtopics: [
       {
         key: "organizacao",
@@ -94,8 +94,6 @@ export const BONUS_EVALUATION_CATEGORIES: Record<
   },
   people_skill: {
     label: "People Skills",
-    payoutPerPoint: 2,
-    maxPayout: 200,
     subtopics: [
       {
         key: "trabalho_equipe",
@@ -140,6 +138,23 @@ export function isBonusEligibleConsultant(name?: string | null) {
 export function getBonusCeiling(seniority?: string | null) {
   const normalized = normalizeBonusSeniority(seniority);
   return normalized ? BONUS_PAYOUT_BY_SENIORITY[normalized] : 1200;
+}
+
+export function getBonusCategoryMaxPayout(category: BonusEvaluationCategory, seniority?: string | null) {
+  return Math.round(getBonusCeiling(seniority) * BONUS_MANUAL_CATEGORY_WEIGHTS[category]);
+}
+
+export function getBonusCategoryPayoutPerPoint(category: BonusEvaluationCategory, seniority?: string | null) {
+  return getBonusCategoryMaxPayout(category, seniority) / 100;
+}
+
+export function getBonusCategoryPayoutFromScore(
+  category: BonusEvaluationCategory,
+  score100: number | null | undefined,
+  seniority?: string | null,
+) {
+  if (score100 == null || Number.isNaN(score100)) return null;
+  return Math.round(score100 * getBonusCategoryPayoutPerPoint(category, seniority));
 }
 
 export function score1To10To100(score: number | null | undefined) {

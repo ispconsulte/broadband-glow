@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import {
   averageNumbers,
   BONUS_EVALUATION_CATEGORIES,
+  getBonusCategoryPayoutFromScore,
   type BonusEvaluationCategory,
   type BonusEvaluationStatus,
 } from "@/modules/sprint6/bonusEvaluation";
@@ -464,11 +465,11 @@ export function BonusEvaluationModal({
     const calc = (cat: BonusEvaluationCategory) => {
       const entries = Object.values(form[cat]);
       const avg = averageNumbers(entries.map((i) => i.score * 10));
-      const payout = avg != null ? Math.round(avg * BONUS_EVALUATION_CATEGORIES[cat].payoutPerPoint) : null;
+      const payout = getBonusCategoryPayoutFromScore(cat, avg, consultant?.level ?? null);
       return { average: avg, payout };
     };
     return { hard: calc("hard_skill_manual"), soft: calc("soft_skill"), people: calc("people_skill") };
-  }, [form]);
+  }, [consultant?.level, form]);
 
   const updateField = useCallback(
     (category: BonusEvaluationCategory, subtopic: string, patch: Partial<SubtopicValue>) => {
