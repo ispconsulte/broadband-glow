@@ -192,12 +192,7 @@ export default function Sprint6BonificacaoPage() {
             </p>
           </div>
         )}
-        {bonus.loading && (
-          <div className="flex items-center gap-3 rounded-xl border border-border/15 bg-card/40 px-4 py-3">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-            <span className="text-sm text-muted-foreground">Carregando dados…</span>
-          </div>
-        )}
+        {/* loading silencioso — sem indicador visual */}
         {!bonus.loading && statusBanner && (
           <div className={`rounded-xl border px-4 py-3 ${statusBanner.tone === "blue" ? "border-blue-500/15 bg-blue-500/[0.04] text-blue-200" : "border-amber-500/15 bg-amber-500/[0.04] text-amber-200"}`}>
             <p className="text-sm font-semibold">{statusBanner.title}</p>
