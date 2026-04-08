@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { ClipboardCheck, Loader2, Calendar, Save, SendHorizonal, ChevronDown, Check, ShieldAlert } from "lucide-react";
+import { ClipboardCheck, Loader2, Calendar, Save, SendHorizonal, ChevronDown, Check, ShieldAlert, Trash2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -386,6 +386,7 @@ export function BonusEvaluationModal({
   const [periodMonth, setPeriodMonth] = useState<number>(new Date().getMonth() + 1);
   const [periodYear, setPeriodYear] = useState<number>(new Date().getFullYear());
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const [loadedRowCount, setLoadedRowCount] = useState(0);
 
   const periodKey = `${periodYear}-${String(periodMonth).padStart(2, "0")}`;
 
@@ -436,6 +437,7 @@ export function BonusEvaluationModal({
           .eq("period_month", periodMonth);
 
         if (error) throw error;
+        if (!cancelled) setLoadedRowCount((data ?? []).length);
 
         (data ?? []).forEach((row: { category: string | null; subtopic: string | null; score_1_10: number | null; justificativa: string | null; pontos_de_melhoria: string | null }) => {
           if (!row.category || !row.subtopic || !next[row.category as BonusEvaluationCategory]?.[row.subtopic]) return;
@@ -450,6 +452,7 @@ export function BonusEvaluationModal({
       } catch (error: any) {
         if (!cancelled) {
           setForm(buildDefaultState());
+          setLoadedRowCount(0);
           toast.error(error?.message ?? "Erro ao carregar avaliação do período.");
         }
       } finally {
@@ -523,11 +526,45 @@ export function BonusEvaluationModal({
       const { error } = await supabase.from("bonus_internal_evaluations").insert(rows);
       if (error) throw error;
 
+      setLoadedRowCount(rows.length);
       toast.success(status === "submitted" ? "Avaliação finalizada e salva." : "Rascunho salvo com sucesso.");
       onSaved?.();
       onOpenChange(false);
     } catch (error: any) {
       toast.error(error?.message ?? "Erro ao salvar avaliação.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!consultant?.userId || !session?.userId) return;
+    if (!hasPermission) {
+      toast.error("Você não tem permissão para esta ação.");
+      return;
+    }
+    if (!loadedRowCount) return;
+    if (!window.confirm(`Excluir a avaliação de ${consultant.name} para ${periodKey}?`)) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("bonus_internal_evaluations")
+        .delete()
+        .eq("evaluation_scope", "consultant")
+        .eq("period_year", periodYear)
+        .eq("period_month", periodMonth)
+        .eq("user_id", consultant.userId)
+        .eq("evaluator_user_id", session.userId);
+
+      if (error) throw error;
+
+      setForm(buildDefaultState());
+      setLoadedRowCount(0);
+      toast.success("Avaliação excluída com sucesso.");
+      onSaved?.();
+    } catch (error: any) {
+      toast.error(error?.message ?? "Erro ao excluir avaliação.");
     } finally {
       setSaving(false);
     }
@@ -754,6 +791,18 @@ export function BonusEvaluationModal({
           </div>
 
           <div className="mt-2 flex items-center gap-3 rounded-2xl border border-border/8 bg-white/[0.02] px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.15)]">
+            {loadedRowCount > 0 && (
+              <Button
+                variant="outline"
+                size="default"
+                onClick={handleDelete}
+                disabled={saving}
+                className="rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive gap-2 text-sm"
+              >
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Excluir
+              </Button>
+            )}
             <Button variant="outline" size="default" onClick={() => handleSave("draft")} disabled={saving} className="flex-1 rounded-xl border-border/10 hover:bg-white/[0.04] gap-2 text-sm">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Salvar rascunho

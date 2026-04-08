@@ -165,14 +165,6 @@ function average(values: number[]) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function monthKey(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-}
-
-function quarterKey(date: Date) {
-  return `${date.getFullYear()}-Q${Math.floor(date.getMonth() / 3) + 1}`;
-}
-
 function resolveStatus(statusRaw: string | number | undefined, deadline: Date | null): TaskStatusKey {
   if (typeof statusRaw === "number") {
     if (statusRaw === 5) return "done";
@@ -796,208 +788,6 @@ export function useBonusRealData(period: RoiPeriod = "180d", accessToken?: strin
     };
   }, [financials.data, tasks.tasks, elapsed.times, health.summary?.clients, projectSpotlights]);
 
-  const derivedPersistence = useMemo(() => {
-    const nowIso = new Date().toISOString();
-    const currentMonthKey = monthKey(new Date());
-    const currentQuarterKey = quarterKey(new Date());
-    const persistedSnapshotKeys = new Set(
-      persistence.snapshots.map((row) => `${row.snapshot_kind}:${row.period_key}:${row.subject_key}`),
-    );
-
-    const derivedSnapshots: BonusScoreSnapshotRow[] = [];
-    const derivedBreakdowns: BonusMetricBreakdownRow[] = [];
-
-    const pushBreakdown = (
-      snapshotId: string,
-      code: string,
-      label: string,
-      group: string,
-      value: number | null,
-      target: number | null,
-      unit: string | null,
-      details: Record<string, unknown>,
-    ) => {
-      derivedBreakdowns.push({
-        id: `derived-breakdown-${snapshotId}-${code}`,
-        snapshot_id: snapshotId,
-        metric_code: code,
-        metric_label: label,
-        metric_group: group,
-        metric_value: value,
-        metric_target: target,
-        metric_unit: unit,
-        meets_target: value != null && target != null ? value >= target : null,
-        details,
-        source_entity: "dashboard_bonus_calculation",
-        source_provenance: "calculated",
-        source_record_key: code,
-        source_updated_at: nowIso,
-        created_at: nowIso,
-        updated_at: nowIso,
-      });
-    };
-
-    consultantCards.forEach((consultant) => {
-      const userId = consultant.userId;
-      if (!userId) return;
-
-      const subjectKey = `consultant:${userId}`;
-      const snapshotKey = `consultant_monthly:${currentMonthKey}:${subjectKey}`;
-      if (persistedSnapshotKeys.has(snapshotKey)) return;
-
-      const snapshotId = `derived-consultant-${currentMonthKey}-${userId}`;
-      derivedSnapshots.push({
-        id: snapshotId,
-        snapshot_kind: "consultant_monthly",
-        period_type: "month",
-        period_key: currentMonthKey,
-        subject_key: subjectKey,
-        user_id: userId,
-        subject_role: consultant.level,
-        score: consultant.score,
-        payout_amount: consultant.payout,
-        max_payout_amount: consultant.maxBonus,
-        sync_status: "calculated",
-        source_provenance: "calculated",
-        source_updated_at: nowIso,
-        calculated_at: nowIso,
-        calculation_version: "dashboard-live-v1",
-        explanation: {
-          consultant_name: consultant.name,
-          provenance: "calculated_from_live_operational_data",
-          based_on: ["tasks", "elapsed_times", "capacity", "client_health"],
-        },
-        notes: "Snapshot derivado em tempo real a partir das fontes operacionais disponíveis.",
-        created_at: nowIso,
-        updated_at: nowIso,
-      });
-
-      pushBreakdown(snapshotId, "on_time_rate", "Entrega no prazo", "operacional", consultant.onTimeRate, 95, "%", {
-        consultant_name: consultant.name,
-      });
-      pushBreakdown(snapshotId, "utilization", "Utilização", "capacidade", consultant.utilization, 70, "%", {
-        consultant_name: consultant.name,
-      });
-      pushBreakdown(snapshotId, "health_score", "Saúde da carteira", "carteira", consultant.healthScore, 70, "pts", {
-        consultant_name: consultant.name,
-      });
-      pushBreakdown(snapshotId, "tracked_hours", "Horas apontadas", "operacional", consultant.hoursTracked, null, "h", {
-        consultant_name: consultant.name,
-      });
-    });
-
-    const canDeriveManagementSnapshots =
-      financials.data.size > 0 || (health.summary?.clients.length ?? 0) > 0 || consultantCards.length > 0;
-
-    if (canDeriveManagementSnapshots) {
-      const commercialSubjectKey = "cro:revops_monthly";
-      const commercialSnapshotKey = `commercial_monthly:${currentMonthKey}:${commercialSubjectKey}`;
-      if (!persistedSnapshotKeys.has(commercialSnapshotKey)) {
-        const snapshotId = `derived-commercial-${currentMonthKey}`;
-        const revopsScore = Math.round(clamp(revenueSummary.croMonthlyEstimate / 1500) * 100);
-        derivedSnapshots.push({
-          id: snapshotId,
-          snapshot_kind: "commercial_monthly",
-          period_type: "month",
-          period_key: currentMonthKey,
-          subject_key: commercialSubjectKey,
-          user_id: null,
-          subject_role: "cro",
-          score: revopsScore,
-          payout_amount: revenueSummary.croMonthlyEstimate,
-          max_payout_amount: 1500,
-          sync_status: "calculated",
-          source_provenance: "calculated",
-          source_updated_at: nowIso,
-          calculated_at: nowIso,
-          calculation_version: "dashboard-live-v1",
-          explanation: {
-            provenance: "calculated_from_project_financials_and_client_health",
-            based_on: ["project_financials", "elapsed_times", "client_health"],
-          },
-          notes: "Snapshot derivado em tempo real para leitura gerencial; não substitui ingestão CRM.",
-          created_at: nowIso,
-          updated_at: nowIso,
-        });
-
-        pushBreakdown(snapshotId, "estimated_margin", "Margem estimada", "financeiro", revenueSummary.estimatedMargin, 30, "%", {});
-        pushBreakdown(snapshotId, "healthy_clients_ratio", "Carteira saudável", "carteira", revenueSummary.healthyClientsRatio, 80, "%", {});
-        pushBreakdown(snapshotId, "average_roi", "ROI médio", "financeiro", revenueSummary.averageRoi, null, "%", {});
-      }
-
-      const revenueSubjectKey = "cro:revenue_quarterly";
-      const revenueSnapshotKey = `revenue_quarterly:${currentQuarterKey}:${revenueSubjectKey}`;
-      if (!persistedSnapshotKeys.has(revenueSnapshotKey)) {
-        const snapshotId = `derived-revenue-${currentQuarterKey}`;
-        const quarterlyScore = Math.round(
-          clamp(
-            ((revenueSummary.healthyClientsRatio ?? 0) / 80) * 0.5 +
-            ((revenueSummary.estimatedMargin ?? 0) / 30) * 0.5,
-          ) * 100,
-        );
-        derivedSnapshots.push({
-          id: snapshotId,
-          snapshot_kind: "revenue_quarterly",
-          period_type: "quarter",
-          period_key: currentQuarterKey,
-          subject_key: revenueSubjectKey,
-          user_id: null,
-          subject_role: "cro",
-          score: quarterlyScore,
-          payout_amount: revenueSummary.croQuarterlyEstimate,
-          max_payout_amount: 1000,
-          sync_status: "calculated",
-          source_provenance: "calculated",
-          source_updated_at: nowIso,
-          calculated_at: nowIso,
-          calculation_version: "dashboard-live-v1",
-          explanation: {
-            provenance: "calculated_from_financial_margin_and_health_mix",
-            based_on: ["project_financials", "client_health"],
-          },
-          notes: revenueSummary.annualStrategicEstimate > 0
-            ? "Snapshot trimestral calculado com gatilho estratégico anual já atingido no proxy financeiro."
-            : "Snapshot trimestral calculado com base no proxy de margem e saúde da carteira; NRR real continua dependente de MRR histórico.",
-          created_at: nowIso,
-          updated_at: nowIso,
-        });
-
-        pushBreakdown(snapshotId, "quarterly_bonus_estimate", "Bônus trimestral estimado", "financeiro", revenueSummary.croQuarterlyEstimate, 1000, "BRL", {});
-        pushBreakdown(snapshotId, "estimated_margin", "Margem estimada", "financeiro", revenueSummary.estimatedMargin, 30, "%", {});
-        pushBreakdown(snapshotId, "healthy_clients_ratio", "Carteira saudável", "carteira", revenueSummary.healthyClientsRatio, 80, "%", {});
-      }
-    }
-
-    return {
-      snapshots: derivedSnapshots,
-      consultantSnapshots: derivedSnapshots.filter((row) => row.snapshot_kind === "consultant_monthly"),
-      commercialSnapshots: derivedSnapshots.filter((row) => row.snapshot_kind === "commercial_monthly"),
-      revenueSnapshots: derivedSnapshots.filter((row) => row.snapshot_kind === "revenue_quarterly"),
-      breakdowns: derivedBreakdowns,
-    };
-  }, [consultantCards, financials.data.size, health.summary?.clients.length, persistence.snapshots, revenueSummary]);
-
-  const combinedSnapshots = useMemo(
-    () => [...persistence.snapshots, ...derivedPersistence.snapshots],
-    [persistence.snapshots, derivedPersistence.snapshots],
-  );
-  const combinedConsultantSnapshots = useMemo(
-    () => [...persistence.consultantSnapshots, ...derivedPersistence.consultantSnapshots],
-    [persistence.consultantSnapshots, derivedPersistence.consultantSnapshots],
-  );
-  const combinedCommercialSnapshots = useMemo(
-    () => [...persistence.commercialSnapshots, ...derivedPersistence.commercialSnapshots],
-    [persistence.commercialSnapshots, derivedPersistence.commercialSnapshots],
-  );
-  const combinedRevenueSnapshots = useMemo(
-    () => [...persistence.revenueSnapshots, ...derivedPersistence.revenueSnapshots],
-    [persistence.revenueSnapshots, derivedPersistence.revenueSnapshots],
-  );
-  const combinedBreakdowns = useMemo(
-    () => [...persistence.breakdowns, ...derivedPersistence.breakdowns],
-    [persistence.breakdowns, derivedPersistence.breakdowns],
-  );
-
   const overview = useMemo<BonusOverview>(() => {
     const avgConsultantScore = average(consultantCards.map((consultant) => consultant.score));
     const avgOnTimeRate = average(
@@ -1064,12 +854,10 @@ export function useBonusRealData(period: RoiPeriod = "180d", accessToken?: strin
     {
       id: "bonus-snapshots",
       label: "Snapshots de bonificação",
-      status: persistence.snapshots.length > 0 ? "connected" : derivedPersistence.snapshots.length > 0 ? "partial" : persistence.error ? "partial" : "pending",
+      status: persistence.snapshots.length > 0 ? "connected" : persistence.error ? "partial" : "pending",
       helper:
         persistence.snapshots.length > 0
           ? "Snapshots persistidos por período já disponíveis no banco."
-          : derivedPersistence.snapshots.length > 0
-          ? "Snapshots calculados em tempo real já aparecem no dashboard, mas ainda não foram persistidos no banco."
           : "Snapshots mensais/trimestrais ainda não foram gerados a partir das fontes disponíveis.",
     },
     {
@@ -1078,7 +866,7 @@ export function useBonusRealData(period: RoiPeriod = "180d", accessToken?: strin
       status: persistence.evaluations.length > 0 ? "connected" : persistence.error ? "partial" : "pending",
       helper: "Soft skills, people skills e NPS manual quando o dado não vem nativamente do Bitrix.",
     },
-  ], [tasks.tasks.length, elapsed.times.length, tasks.error, elapsed.error, financials.data.size, financials.error, health.summary?.clients.length, health.error, persistence.sourceStatuses, persistence.snapshots.length, persistence.evaluations.length, persistence.error, derivedPersistence.snapshots.length]);
+  ], [tasks.tasks.length, elapsed.times.length, tasks.error, elapsed.error, financials.data.size, financials.error, health.summary?.clients.length, health.error, persistence.sourceStatuses, persistence.snapshots.length, persistence.evaluations.length, persistence.error]);
 
   return {
     loading: tasks.loading || elapsed.loading || capacity.loading || health.loading || financials.loading || persistence.loading,
@@ -1091,13 +879,13 @@ export function useBonusRealData(period: RoiPeriod = "180d", accessToken?: strin
     persistence: {
       loading: persistence.loading,
       error: persistence.error,
-      snapshotCount: combinedSnapshots.length,
+      snapshotCount: persistence.snapshots.length,
       evaluationCount: persistence.evaluations.length,
-      snapshots: combinedSnapshots,
-      consultantSnapshots: combinedConsultantSnapshots,
-      commercialSnapshots: combinedCommercialSnapshots,
-      revenueSnapshots: combinedRevenueSnapshots,
-      breakdowns: combinedBreakdowns,
+      snapshots: persistence.snapshots,
+      consultantSnapshots: persistence.consultantSnapshots,
+      commercialSnapshots: persistence.commercialSnapshots,
+      revenueSnapshots: persistence.revenueSnapshots,
+      breakdowns: persistence.breakdowns,
       evaluations: persistence.evaluations,
       sourceStatusRows: persistence.sourceStatuses,
       sourceStatuses: persistence.sourceStatuses.map((row) => ({

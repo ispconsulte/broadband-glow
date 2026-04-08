@@ -25,17 +25,22 @@ interface TrendPoint {
   consultantCount: number;
 }
 
+interface ConsultantTrendChange {
+  userId: string;
+  name: string;
+  currentLabel: string;
+  previousLabel: string;
+  currentScore: number;
+  previousScore: number;
+  delta: number;
+}
+
 interface BonusTrendsSectionProps {
   consultants: BonusConsultantCard[];
   consultantSnapshots: BonusScoreSnapshotRow[];
 }
 
 /* ── Helpers ───────────────────────────────────────────────────────── */
-function currentMonthKey() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
-
 function formatPeriodLabel(key: string) {
   const parts = key.split("-");
   if (parts.length === 2) {
@@ -109,6 +114,48 @@ function SinglePeriodCard({ label, value, periodLabel, color }: { label: string;
   );
 }
 
+function ConsultantTrendList({
+  title,
+  items,
+  emptyText,
+  positive,
+}: {
+  title: string;
+  items: ConsultantTrendChange[];
+  emptyText: string;
+  positive: boolean;
+}) {
+  return (
+    <div className="rounded-xl border border-border/8 bg-white/[0.015] p-4">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground/45">{title}</p>
+        <span className={`text-[11px] font-medium ${positive ? "text-emerald-400" : "text-red-400"}`}>
+          {items.length > 0 ? `${positive ? "+" : ""}${items[0]?.delta ?? 0} pts` : "sem variação"}
+        </span>
+      </div>
+      {items.length > 0 ? (
+        <div className="mt-3 space-y-2.5">
+          {items.map((item) => (
+            <div key={`${item.userId}-${item.currentLabel}`} className="flex items-center justify-between gap-3 rounded-lg border border-border/8 bg-card/20 px-3 py-2.5">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{item.name}</p>
+                <p className="text-[11px] text-muted-foreground/45">
+                  {item.previousLabel}: {item.previousScore}% {"->"} {item.currentLabel}: {item.currentScore}%
+                </p>
+              </div>
+              <span className={`shrink-0 text-sm font-semibold ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                {positive ? "+" : ""}{item.delta}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 text-xs text-muted-foreground/55">{emptyText}</p>
+      )}
+    </div>
+  );
+}
+
 /* ── Main Component ────────────────────────────────────────────────── */
 export function BonusTrendsSection({ consultants, consultantSnapshots }: BonusTrendsSectionProps) {
   const trendData = useMemo(() => {
@@ -123,19 +170,6 @@ export function BonusTrendsSection({ consultants, consultantSnapshots }: BonusTr
       periodMap.set(snap.period_key, existing);
     });
 
-    if (consultants.length > 0) {
-      const currentKey = currentMonthKey();
-      const existing = periodMap.get(currentKey) ?? { scores: [], payouts: [], count: 0 };
-      if (existing.count === 0) {
-        consultants.forEach((c) => {
-          existing.scores.push(c.score);
-          existing.payouts.push(c.payout);
-          existing.count += 1;
-        });
-        periodMap.set(currentKey, existing);
-      }
-    }
-
     const points: TrendPoint[] = Array.from(periodMap.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([key, data]) => ({
@@ -148,6 +182,52 @@ export function BonusTrendsSection({ consultants, consultantSnapshots }: BonusTr
 
     return points;
   }, [consultants, consultantSnapshots]);
+
+  const consultantChanges = useMemo(() => {
+    const byUser = new Map<string, Array<{ period: string; score: number }>>();
+
+    consultantSnapshots.forEach((snap) => {
+      if (snap.period_type !== "month" || !snap.user_id) return;
+      const userId = String(snap.user_id);
+      const rows = byUser.get(userId) ?? [];
+      rows.push({ period: snap.period_key, score: Number(snap.score) });
+      byUser.set(userId, rows);
+    });
+
+    return consultants
+      .map((consultant) => {
+        if (!consultant.userId) return null;
+        const rows = (byUser.get(consultant.userId) ?? [])
+          .sort((a, b) => a.period.localeCompare(b.period))
+          .filter((row, index, list) => index === list.findIndex((item) => item.period === row.period));
+
+        if (rows.length < 2) return null;
+
+        const current = rows[rows.length - 1];
+        const previous = rows[rows.length - 2];
+        const delta = current.score - previous.score;
+
+        return {
+          userId: consultant.userId,
+          name: consultant.name,
+          currentLabel: formatPeriodLabel(current.period),
+          previousLabel: formatPeriodLabel(previous.period),
+          currentScore: current.score,
+          previousScore: previous.score,
+          delta,
+        } satisfies ConsultantTrendChange;
+      })
+      .filter((item): item is ConsultantTrendChange => item != null);
+  }, [consultants, consultantSnapshots]);
+
+  const improvingConsultants = useMemo(
+    () => consultantChanges.filter((item) => item.delta > 0).sort((a, b) => b.delta - a.delta).slice(0, 3),
+    [consultantChanges],
+  );
+  const decliningConsultants = useMemo(
+    () => consultantChanges.filter((item) => item.delta < 0).sort((a, b) => a.delta - b.delta).slice(0, 3),
+    [consultantChanges],
+  );
 
   const hasHistory = trendData.length >= 2;
   const currentPoint = trendData[trendData.length - 1] ?? null;
@@ -196,6 +276,20 @@ export function BonusTrendsSection({ consultants, consultantSnapshots }: BonusTr
                   />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+            <div className="grid gap-3 lg:grid-cols-2">
+              <ConsultantTrendList
+                title="Consultores em alta"
+                items={improvingConsultants}
+                emptyText="Ainda não há crescimento individual comparável entre os períodos registrados."
+                positive
+              />
+              <ConsultantTrendList
+                title="Consultores em atenção"
+                items={decliningConsultants}
+                emptyText="Nenhum consultor caiu entre o período anterior e o atual."
+                positive={false}
+              />
             </div>
           </div>
         ) : trendData.length === 1 ? (
