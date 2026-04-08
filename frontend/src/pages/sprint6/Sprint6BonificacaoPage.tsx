@@ -168,18 +168,21 @@ export default function Sprint6BonificacaoPage() {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
 
 
         {/* ── Error / Loading / Status ────────────────────────────── */}
         {bonus.error && (
-          <div className="rounded-xl border border-destructive/20 bg-destructive/[0.06] px-4 py-3 text-sm text-destructive">
-            Erro: {bonus.error}
+          <div className="rounded-xl border border-amber-500/15 bg-amber-500/[0.04] px-5 py-4 text-sm text-amber-200 space-y-1">
+            <p className="font-semibold">Parece que encontramos um problema</p>
+            <p className="text-xs text-amber-200/70 leading-relaxed">
+              Tente recarregar a página ou sair e entrar novamente no sistema. Se o problema persistir, entre em contato com nossa equipe de desenvolvimento e informe a situação.
+            </p>
           </div>
         )}
         {bonus.loading && (
           <div className="flex items-center gap-3 rounded-xl border border-border/15 bg-card/40 px-4 py-3">
-            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }} className="h-4 w-4 rounded-full border-2 border-primary/30 border-t-primary" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
             <span className="text-sm text-muted-foreground">Carregando dados…</span>
           </div>
         )}
