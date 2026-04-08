@@ -415,7 +415,7 @@ export default function Sprint6BonificacaoPage() {
               </div>
 
             </div>
-        </motion.div>
+        </div>
       </div>
 
       <BonusEvaluationModal
