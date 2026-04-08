@@ -105,11 +105,9 @@ function ScoreComposition({
           const palette = colorForFactor(factor.key);
           const widthPct = Math.max(factor.contribution * 100, 0.5);
           return (
-            <motion.div
+            <div
               key={factor.key}
-              initial={{ width: 0 }}
-              animate={{ width: `${widthPct}%` }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              style={{ width: `${Math.max(factor.contribution * 100, 0.5)}%` }}
               className={`h-full ${palette.color}/60 first:rounded-l-full last:rounded-r-full`}
               title={`${factor.label}: ${Math.round(factor.contribution * 100)}%`}
             />
@@ -150,10 +148,8 @@ function ScoreComposition({
                   )}
                 </div>
                 <div className="mt-1 h-1 w-full rounded-full bg-card/25 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${normalizedPct}%` }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  <div
+                    style={{ width: `${normalizedPct}%` }}
                     className={`h-full rounded-full ${palette.color}/40`}
                   />
                 </div>
