@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useBonusRealData, type BonusConsultantCard } from "@/modules/sprint6/hooks/useBonusRealData";
+import { useSharedTasks } from "@/contexts/SharedTasksContext";
 import type { RoiPeriod } from "@/modules/sprint6/types";
 import PageSkeleton from "@/components/ui/PageSkeleton";
 import DataErrorCard from "@/components/ui/DataErrorCard";
@@ -39,6 +40,7 @@ import { BonusTrendsSection } from "@/modules/sprint6/components/bonus/BonusTren
 import { BonusScoreComposition } from "@/modules/sprint6/components/bonus/BonusScoreComposition";
 import { CollapsibleSection } from "@/modules/sprint6/components/bonus/CollapsibleSection";
 import { BonusTeamTab } from "@/modules/sprint6/components/bonus/BonusTeamTab";
+import { BonusUserDetail } from "@/modules/sprint6/components/bonus/BonusUserDetail";
 
 /* ── Visibility tiers ────────────────────────────────────────────── */
 function firstNameLower(name?: string | null): string {
@@ -89,6 +91,8 @@ export default function Sprint6BonificacaoPage() {
   const [evaluationConsultant, setEvaluationConsultant] = useState<BonusConsultantCard | null>(null);
   const [reportConsultant, setReportConsultant] = useState<BonusConsultantCard | null>(null);
   const bonus = useBonusRealData(period, session?.accessToken, refreshKey);
+  const sharedTasks = useSharedTasks();
+  const allTasks = sharedTasks?.tasks ?? [];
   const permissionRole = session?.bonusRole ?? "consultor";
 
   const isTaliaFullAccess = isPaymentManager(session?.name);
@@ -494,14 +498,13 @@ export default function Sprint6BonificacaoPage() {
           </p>
         </div>
 
-        <RankingCard
+        <BonusUserDetail
           consultant={myConsultant}
-          rank={1}
-          showRank={false}
           expanded={expandedConsultant === myConsultant.name}
           onToggle={() => setExpandedConsultant(expandedConsultant === myConsultant.name ? null : myConsultant.name)}
           hideMonetary={true}
           periodLabel={periodLabel(period)}
+          allTasks={allTasks}
         />
       </>
     );

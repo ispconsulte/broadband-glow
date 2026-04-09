@@ -65,13 +65,12 @@ function ScoreComposition({
 }) {
   const gap = maxBonus - payout;
   const sorted = [...breakdown.factors].sort((a, b) => b.contribution - a.contribution);
-
   const best = sorted[0];
   const worst = sorted[sorted.length - 1];
 
   return (
     <div className="space-y-3">
-      {/* Section header */}
+      {/* Header with score pill */}
       <div className="flex items-center justify-between">
         <p className="text-xs font-bold text-foreground tracking-wide">Composição do Score</p>
         <div className={`rounded-lg px-2.5 py-1 ${scoreBg(score)}`}>
@@ -79,81 +78,63 @@ function ScoreComposition({
         </div>
       </div>
 
-      {/* Quick insight: best + worst */}
+      {/* Quick insight chips */}
       {best && worst && best.key !== worst.key && (
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center gap-2 rounded-lg border border-emerald-500/10 bg-emerald-500/[0.03] px-2.5 py-2">
-            <TrendingUp className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[10px] text-emerald-400/70 font-semibold">Mais contribuiu</p>
-              <p className="text-[11px] text-foreground font-medium truncate">{best.label}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 rounded-lg border border-red-500/10 bg-red-500/[0.03] px-2.5 py-2">
-            <TrendingDown className="h-3.5 w-3.5 text-red-400 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[10px] text-red-400/70 font-semibold">Menor contribuição</p>
-              <p className="text-[11px] text-foreground font-medium truncate">{worst.label}</p>
-            </div>
-          </div>
+        <div className="flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/15 bg-emerald-500/[0.06] px-3 py-1 text-[11px] font-medium text-emerald-300">
+            <TrendingUp className="h-3 w-3" /> {best.label}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/15 bg-red-500/[0.06] px-3 py-1 text-[11px] font-medium text-red-300">
+            <TrendingDown className="h-3 w-3" /> {worst.label}
+          </span>
         </div>
       )}
 
-      {/* Stacked bar */}
-      <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-card/30">
+      {/* Visual stacked bar */}
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-card/30">
         {breakdown.factors.map((factor) => {
           const palette = colorForFactor(factor.key);
-          const widthPct = Math.max(factor.contribution * 100, 0.5);
           return (
             <div
               key={factor.key}
               style={{ width: `${Math.max(factor.contribution * 100, 0.5)}%` }}
-              className={`h-full ${palette.color}/60 first:rounded-l-full last:rounded-r-full`}
+              className={`h-full ${palette.color}/60 first:rounded-l-full last:rounded-r-full transition-all`}
               title={`${factor.label}: ${Math.round(factor.contribution * 100)}%`}
             />
           );
         })}
       </div>
 
-      {/* Factor detail rows */}
-      <div className="grid gap-1.5 grid-cols-1 sm:grid-cols-2">
+      {/* Factor cards — compact visual grid */}
+      <div className="grid gap-2 grid-cols-2">
         {breakdown.factors.map((factor) => {
           const CfgIcon = iconForFactor(factor.key);
           const palette = colorForFactor(factor.key);
-          const hasData = factor.raw != null || factor.normalized > 0 || factor.contribution > 0;
           const normalizedPct = Math.round(factor.normalized * 100);
           const contributionPct = Math.round(factor.contribution * 100);
           const isGood = factor.normalized >= 0.7;
           const isMid = factor.normalized >= 0.4;
 
           return (
-            <div key={factor.key} className="flex items-center gap-2.5 rounded-xl border border-border/6 bg-card/15 p-2.5 transition-colors hover:bg-card/25">
-              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${palette.color}/10`}>
-                <CfgIcon className={`h-3.5 w-3.5 ${palette.text}`} />
+            <div key={factor.key} className="rounded-xl border border-border/8 bg-card/20 p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${palette.color}/10`}>
+                  <CfgIcon className={`h-3 w-3 ${palette.text}`} />
+                </div>
+                <p className="text-[11px] font-semibold text-foreground truncate flex-1">{factor.label}</p>
+                <span className={`text-xs font-bold ${isGood ? "text-emerald-400" : isMid ? "text-amber-400" : "text-red-400"}`}>
+                  {contributionPct}%
+                </span>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-1">
-                  <p className="text-[11px] font-semibold text-foreground truncate">{factor.label}</p>
-                  <span className={`shrink-0 text-[11px] font-bold ${isGood ? "text-emerald-400" : isMid ? "text-amber-400" : "text-red-400"}`}>
-                    {contributionPct}%
-                  </span>
-                </div>
-                <div className="mt-0.5">
-                  {hasData ? (
-                    <span className="text-[10px] text-muted-foreground/60">
-                      {factor.rawDisplay ?? `${normalizedPct}%`} <span className="text-muted-foreground/30">→</span> peso {Math.round(factor.weight * 100)}% <span className="text-muted-foreground/30">→</span> {normalizedPct}% efic.
-                    </span>
-                  ) : (
-                    <NoData text="Ainda não alimentado" />
-                  )}
-                </div>
-                <div className="mt-1 h-1 w-full rounded-full bg-card/25 overflow-hidden">
-                  <div
-                    style={{ width: `${normalizedPct}%` }}
-                    className={`h-full rounded-full ${palette.color}/40`}
-                  />
-                </div>
+              <div className="h-1.5 w-full rounded-full bg-card/30 overflow-hidden">
+                <div
+                  style={{ width: `${normalizedPct}%` }}
+                  className={`h-full rounded-full ${palette.color}/50 transition-all`}
+                />
               </div>
+              <p className="text-[10px] text-muted-foreground/50">
+                peso {Math.round(factor.weight * 100)}%
+              </p>
             </div>
           );
         })}
@@ -360,9 +341,6 @@ export function RankingCard({
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-border/10 bg-white/[0.015] p-3.5 sm:p-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="border-border/20 bg-card/30 text-[10px] text-muted-foreground/80">
-                      Papel: {consultant.role === "admin" ? "Admin" : consultant.role === "gestor" ? "Gestor" : "Consultor"}
-                    </Badge>
                     <Badge
                       variant="outline"
                       className={`text-[10px] ${
