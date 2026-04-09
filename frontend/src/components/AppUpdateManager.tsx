@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 
 /* ── Config ─────────────────────────────────────────────────────────── */
 const VERSION_CHECK_INTERVAL_MS = 60_000;
-const UPDATE_SNOOZE_MS = 5 * 60 * 1000; // 5 minutes
+const SNOOZE_DURATIONS_MS = [5 * 60_000, 3 * 60_000, 2 * 60_000, 60_000]; // decreasing: 5m, 3m, 2m, 1m
 
 type RemoteVersionPayload = {
   version?: string;
@@ -21,12 +21,15 @@ export default function AppUpdateManager() {
   const location = useLocation();
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [snoozedUntil, setSnoozedUntil] = useState(0);
+  const [snoozeCount, setSnoozeCount] = useState(0);
   const [updating, setUpdating] = useState(false);
+  const [versionChanges, setVersionChanges] = useState(0); // how many distinct builds detected
 
   /* Re-check snooze timer */
   const [now, setNow] = useState(Date.now());
   const isLoginPage = location.pathname === "/login" || location.pathname === "/";
   const modalOpen = updateAvailable && now >= snoozedUntil && !isLoginPage;
+  const isUrgent = snoozeCount >= 3 || versionChanges >= 2;
 
   /* Restore context on mount (post-update) */
   useEffect(() => {
@@ -47,6 +50,7 @@ export default function AppUpdateManager() {
   /* Polling for version.json */
   useEffect(() => {
     let cancelled = false;
+    let lastSeenBuildId: string | null = null;
 
     const check = async () => {
       try {
@@ -59,9 +63,16 @@ export default function AppUpdateManager() {
         if (cancelled || !data?.buildId) return;
 
         if (data.buildId !== __APP_BUILD_ID__) {
+          // Track if this is a NEW version change (different from last seen remote)
+          if (lastSeenBuildId && data.buildId !== lastSeenBuildId) {
+            setVersionChanges((c) => c + 1);
+          }
+          lastSeenBuildId = data.buildId;
           setUpdateAvailable(true);
         } else {
           setUpdateAvailable(false);
+          setVersionChanges(0);
+          setSnoozeCount(0);
         }
       } catch {
         /* best-effort */
@@ -86,9 +97,11 @@ export default function AppUpdateManager() {
 
   /* Actions */
   const handleLater = useCallback(() => {
-    setSnoozedUntil(Date.now() + UPDATE_SNOOZE_MS);
+    const duration = SNOOZE_DURATIONS_MS[Math.min(snoozeCount, SNOOZE_DURATIONS_MS.length - 1)];
+    setSnoozedUntil(Date.now() + duration);
+    setSnoozeCount((c) => c + 1);
     setNow(Date.now());
-  }, []);
+  }, [snoozeCount]);
 
   const handleUpdateNow = useCallback(() => {
     setUpdating(true);
@@ -209,11 +222,19 @@ export default function AppUpdateManager() {
             initial={{ y: 8, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.35 }}
-            className="mt-4 flex w-full max-w-sm items-start gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.035] px-4 py-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
+            className={`mt-4 flex w-full max-w-sm items-start gap-2.5 rounded-xl border px-4 py-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] ${
+              isUrgent
+                ? "border-amber-400/15 bg-amber-400/[0.04]"
+                : "border-white/[0.06] bg-white/[0.035]"
+            }`}
           >
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300/80" />
+            <ShieldCheck className={`mt-0.5 h-4 w-4 shrink-0 ${isUrgent ? "text-amber-300/80" : "text-emerald-300/80"}`} />
             <p className="text-[11px] leading-relaxed text-white/40 sm:text-xs">
-              Nenhuma atualização será forçada. Se preferir continuar, voltaremos a avisar em breve.
+              {isUrgent
+                ? versionChanges >= 2
+                  ? "Existem múltiplas atualizações pendentes. Recomendamos atualizar o sistema assim que possível para garantir estabilidade e segurança."
+                  : "Você já adiou esta atualização algumas vezes. Quando possível, salve o que está fazendo e atualize o sistema."
+                : "Nenhuma atualização será forçada. Se preferir continuar, voltaremos a avisar em breve."}
             </p>
           </motion.div>
 

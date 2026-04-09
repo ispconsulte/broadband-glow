@@ -60,7 +60,7 @@ function iconForFactor(key: string) {
 function colorForFactor(key: string) {
   if (key.includes("on_time")) return { bg: "rgba(16,185,129,0.6)", bgLight: "rgba(16,185,129,0.1)", bgBar: "rgba(16,185,129,0.5)", text: "text-emerald-400" };
   if (key.includes("hard")) return { bg: "rgba(20,184,166,0.6)", bgLight: "rgba(20,184,166,0.1)", bgBar: "rgba(20,184,166,0.5)", text: "text-teal-400" };
-  if (key.includes("util")) return { bg: "rgba(6,182,212,0.6)", bgLight: "rgba(6,182,212,0.1)", bgBar: "rgba(6,182,212,0.5)", text: "text-cyan-400" };
+  if (key.includes("util")) return { bg: "rgba(239,68,68,0.6)", bgLight: "rgba(239,68,68,0.1)", bgBar: "rgba(239,68,68,0.5)", text: "text-red-400" };
   if (key.includes("soft")) return { bg: "rgba(59,130,246,0.6)", bgLight: "rgba(59,130,246,0.1)", bgBar: "rgba(59,130,246,0.5)", text: "text-blue-400" };
   if (key.includes("health")) return { bg: "rgba(168,85,247,0.6)", bgLight: "rgba(168,85,247,0.1)", bgBar: "rgba(168,85,247,0.5)", text: "text-purple-400" };
   if (key.includes("people")) return { bg: "rgba(99,102,241,0.6)", bgLight: "rgba(99,102,241,0.1)", bgBar: "rgba(99,102,241,0.5)", text: "text-indigo-400" };
