@@ -93,8 +93,8 @@ export default function Sprint6BonificacaoPage() {
   const { session, loadingSession } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [period, setPeriod] = useState<RoiPeriod>("180d");
-  const [customDateFrom, setCustomDateFrom] = useState("");
-  const [customDateTo, setCustomDateTo] = useState("");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [filterOpen, setFilterOpen] = useState(false);
   const [consultantFilter, setConsultantFilter] = useState("");
   const [activeMainTab, setActiveMainTab] = useState("ranking");
