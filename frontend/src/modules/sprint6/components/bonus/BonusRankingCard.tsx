@@ -44,10 +44,13 @@ function iconForFactor(key: string) {
 }
 
 function colorForFactor(key: string) {
-  if (key.includes("hard") || key.includes("on_time")) return { color: "bg-emerald-500", text: "text-emerald-400" };
-  if (key.includes("soft") || key.includes("util")) return { color: "bg-blue-500", text: "text-blue-400" };
-  if (key.includes("people") || key.includes("health")) return { color: "bg-purple-500", text: "text-purple-400" };
-  return { color: "bg-amber-500", text: "text-amber-400" };
+  if (key.includes("on_time")) return { color: "bg-emerald-500", text: "text-emerald-400" };
+  if (key.includes("hard")) return { color: "bg-teal-500", text: "text-teal-400" };
+  if (key.includes("util")) return { color: "bg-cyan-500", text: "text-cyan-400" };
+  if (key.includes("soft")) return { color: "bg-blue-500", text: "text-blue-400" };
+  if (key.includes("health")) return { color: "bg-purple-500", text: "text-purple-400" };
+  if (key.includes("people")) return { color: "bg-indigo-500", text: "text-indigo-400" };
+  return { color: "bg-sky-500", text: "text-sky-400" };
 }
 
 function ScoreComposition({
