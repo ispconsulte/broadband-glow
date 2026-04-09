@@ -317,7 +317,7 @@ export default function Sprint6BonificacaoPage() {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="center" sideOffset={8} className="w-[26rem] rounded-2xl border-border/15 bg-card p-5 shadow-2xl backdrop-blur-xl space-y-5">
+              <PopoverContent align="center" sideOffset={8} className="w-[30rem] max-w-[95vw] rounded-2xl border-border/15 bg-card p-5 shadow-2xl backdrop-blur-xl space-y-5">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-bold text-foreground">Filtros</p>
                   <button type="button" onClick={() => setFilterOpen(false)} className="text-muted-foreground/40 hover:text-foreground transition-colors">
@@ -351,7 +351,7 @@ export default function Sprint6BonificacaoPage() {
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold flex items-center gap-1.5">
                     <CalendarDays className="h-3 w-3" /> Período personalizado
                   </p>
-                  <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <Button
                       variant="outline"
                       onClick={() => setShowCalendar(showCalendar === "from" ? null : "from")}
@@ -378,7 +378,8 @@ export default function Sprint6BonificacaoPage() {
                     </Button>
                   </div>
                   {showCalendar && (
-                    <div className="rounded-xl border border-border/15 bg-secondary/20 p-3 mt-1 flex justify-center">
+                    <div className="mt-2 rounded-2xl border border-border/15 bg-secondary/20 p-4">
+                      <div className="mx-auto w-full max-w-[22rem] overflow-hidden rounded-xl border border-border/10 bg-card/20">
                       <Calendar
                         mode="single"
                         selected={showCalendar === "from" ? dateFrom : dateTo}
@@ -388,8 +389,10 @@ export default function Sprint6BonificacaoPage() {
                           setShowCalendar(null);
                         }}
                         locale={ptBR}
-                        className="p-0 pointer-events-auto w-full"
+                        fixedWeeks
+                        className="mx-auto w-full p-3"
                       />
+                      </div>
                     </div>
                   )}
                 </div>
