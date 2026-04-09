@@ -300,16 +300,16 @@ export default function Sprint6BonificacaoPage() {
 
               {/* ── Period Summary (always visible) ────────────────── */}
               {rankingConsultants.length > 0 && (
-                <div className={`grid gap-2.5 ${hideMonetary ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-2 lg:grid-cols-4"}`}>
+                <div className={`grid gap-2.5 ${!showScores ? "grid-cols-1 sm:grid-cols-2" : isTaliaFullAccess ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-3"}`}>
                   {[
-                    !hideMonetary && {
+                    showScores && {
                       label: "Score médio",
                       value: `${Math.round(rankingConsultants.reduce((s, c) => s + c.score, 0) / rankingConsultants.length)}%`,
                       sub: `${rankingConsultants.length} consultor${rankingConsultants.length > 1 ? "es" : ""} · ${periodLabel(period)}`,
                       color: "border-primary/12 bg-primary/[0.04]",
                       valueColor: "text-primary",
                     },
-                    !hideMonetary && {
+                    isTaliaFullAccess && {
                       label: "Payout total",
                       value: money(rankingConsultants.reduce((sum, consultant) => sum + consultant.payout, 0)),
                       sub: `estimativa ${periodLabel(period)}`,
@@ -330,7 +330,7 @@ export default function Sprint6BonificacaoPage() {
                       color: "border-amber-500/12 bg-amber-500/[0.04]",
                       valueColor: "text-amber-400",
                     },
-                    hideMonetary && {
+                    !showScores && {
                       label: "Meu Score",
                       value: visibleConsultants[0] ? `${visibleConsultants[0].score}%` : "—",
                       sub: periodLabel(period),
