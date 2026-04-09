@@ -122,6 +122,8 @@ export default function Sprint6BonificacaoPage() {
 
   // Filter consultants by visibility permissions
   const visibleConsultants = useMemo(() => {
+    // Talia sees all consultants
+    if (isTaliaFullAccess) return bonus.consultants;
     if (permissionRole === "admin") return bonus.consultants;
     if (permissionRole === "gestor") {
       return bonus.consultants.filter((consultant) =>
@@ -130,7 +132,7 @@ export default function Sprint6BonificacaoPage() {
       );
     }
     return bonus.consultants.filter((consultant) => consultant.userId === session?.userId);
-  }, [bonus.consultants, permissionRole, session?.coordinatorOf, session?.userId]);
+  }, [bonus.consultants, permissionRole, session?.coordinatorOf, session?.userId, isTaliaFullAccess]);
 
   // For ranking, only show eligible consultants
   const rankingConsultants = useMemo(() => {
