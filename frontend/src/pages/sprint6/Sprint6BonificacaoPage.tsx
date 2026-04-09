@@ -96,6 +96,7 @@ export default function Sprint6BonificacaoPage() {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [showCalendar, setShowCalendar] = useState<"from" | "to" | null>(null);
   const [consultantFilter, setConsultantFilter] = useState("");
   const [activeMainTab, setActiveMainTab] = useState("ranking");
   const [search, setSearch] = useState("");
@@ -316,7 +317,7 @@ export default function Sprint6BonificacaoPage() {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="center" sideOffset={8} className="w-80 rounded-2xl border-border/15 bg-card p-5 shadow-2xl backdrop-blur-xl space-y-5">
+              <PopoverContent align="center" sideOffset={8} className="w-[22rem] rounded-2xl border-border/15 bg-card p-5 shadow-2xl backdrop-blur-xl space-y-5">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-bold text-foreground">Filtros</p>
                   <button type="button" onClick={() => setFilterOpen(false)} className="text-muted-foreground/40 hover:text-foreground transition-colors">
@@ -345,61 +346,52 @@ export default function Sprint6BonificacaoPage() {
                   </div>
                 </div>
 
-                {/* Custom date range with Calendar popovers */}
+                {/* Custom date range */}
                 <div className="space-y-2">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold flex items-center gap-1.5">
                     <CalendarDays className="h-3 w-3" /> Período personalizado
                   </p>
                   <div className="grid grid-cols-2 gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "justify-start text-left text-xs font-normal h-9 rounded-lg border-border/15 bg-secondary/30",
-                            !dateFrom && "text-muted-foreground/50"
-                          )}
-                        >
-                          <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
-                          {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "De"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 rounded-xl border-border/15 bg-card shadow-2xl" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={dateFrom}
-                          onSelect={setDateFrom}
-                          locale={ptBR}
-                          initialFocus
-                          className={cn("p-3 pointer-events-auto")}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "justify-start text-left text-xs font-normal h-9 rounded-lg border-border/15 bg-secondary/30",
-                            !dateTo && "text-muted-foreground/50"
-                          )}
-                        >
-                          <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
-                          {dateTo ? format(dateTo, "dd/MM/yyyy") : "Até"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 rounded-xl border-border/15 bg-card shadow-2xl" align="end">
-                        <Calendar
-                          mode="single"
-                          selected={dateTo}
-                          onSelect={setDateTo}
-                          locale={ptBR}
-                          initialFocus
-                          className={cn("p-3 pointer-events-auto")}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowCalendar(showCalendar === "from" ? null : "from")}
+                      className={cn(
+                        "justify-start text-left text-xs font-normal h-9 rounded-lg border-border/15 bg-secondary/30",
+                        !dateFrom && "text-muted-foreground/50",
+                        showCalendar === "from" && "border-primary/40"
+                      )}
+                    >
+                      <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                      {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "De"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowCalendar(showCalendar === "to" ? null : "to")}
+                      className={cn(
+                        "justify-start text-left text-xs font-normal h-9 rounded-lg border-border/15 bg-secondary/30",
+                        !dateTo && "text-muted-foreground/50",
+                        showCalendar === "to" && "border-primary/40"
+                      )}
+                    >
+                      <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                      {dateTo ? format(dateTo, "dd/MM/yyyy") : "Até"}
+                    </Button>
                   </div>
+                  {showCalendar && (
+                    <div className="rounded-xl border border-border/15 bg-secondary/20 p-2 mt-1">
+                      <Calendar
+                        mode="single"
+                        selected={showCalendar === "from" ? dateFrom : dateTo}
+                        onSelect={(date) => {
+                          if (showCalendar === "from") setDateFrom(date);
+                          else setDateTo(date);
+                          setShowCalendar(null);
+                        }}
+                        locale={ptBR}
+                        className="p-2 pointer-events-auto"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Consultant filter (for Thalia) */}
