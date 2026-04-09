@@ -282,6 +282,7 @@ export function RankingCard({
   periodLabel,
   onEvaluate,
   onSendReport,
+  showRank = true,
 }: {
   consultant: BonusConsultantCard;
   rank: number;
@@ -293,25 +294,24 @@ export function RankingCard({
   periodLabel?: string;
   onEvaluate?: (consultant: BonusConsultantCard) => void;
   onSendReport?: (consultant: BonusConsultantCard) => void;
+  showRank?: boolean;
 }) {
-  const isTopThree = rank <= 3;
-  const rankColors =
-    rank === 1
+  const isTopThree = showRank && rank <= 3;
+  const badgeColors = showRank
+    ? rank === 1
       ? "text-amber-300 bg-amber-500/15 border-amber-500/20"
       : rank === 2
       ? "text-slate-300 bg-slate-500/12 border-slate-400/15"
       : rank === 3
       ? "text-orange-300 bg-orange-500/12 border-orange-400/15"
-      : "text-muted-foreground bg-card/30 border-border/10";
-
-  
+      : "text-muted-foreground bg-card/30 border-border/10"
+    : "text-primary bg-primary/10 border-primary/15";
 
   return (
     <div className={`rounded-2xl border transition-all ${expanded ? "border-primary/20 bg-card/55" : "border-border/12 bg-card/35 hover:bg-card/45"}`}>
-      {/* ── Collapsed Header ──────────────────────────────────────── */}
       <button type="button" onClick={onToggle} className="flex w-full items-center gap-2 sm:gap-3 p-3 sm:p-4 text-left">
-        <div className={`flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl border text-xs sm:text-sm font-bold ${rankColors}`}>
-          {isTopThree ? (rank === 1 ? <Crown className="h-4 w-4" /> : <Medal className="h-4 w-4" />) : rank}
+        <div className={`flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl border text-xs sm:text-sm font-bold ${badgeColors}`}>
+          {showRank ? (isTopThree ? (rank === 1 ? <Crown className="h-4 w-4" /> : <Medal className="h-4 w-4" />) : rank) : <UserRound className="h-4 w-4" />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
@@ -347,7 +347,6 @@ export function RankingCard({
         <ChevronDown className={`h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-muted-foreground/50 transition-transform ${expanded ? "rotate-180" : ""}`} />
       </button>
 
-      {/* ── Expanded Detail ───────────────────────────────────────── */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -358,8 +357,6 @@ export function RankingCard({
             className="overflow-hidden"
           >
             <div className="border-t border-border/10 px-3 sm:px-5 pb-4 sm:pb-5 pt-4 space-y-4">
-
-              {/* ── Context Bar ─────────────────────────────────── */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-border/10 bg-white/[0.015] p-3.5 sm:p-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -416,7 +413,6 @@ export function RankingCard({
                 )}
               </div>
 
-              {/* ── Score Composition ──────────────────────────────── */}
               <ScoreComposition
                 breakdown={consultant.scoreBreakdown}
                 score={consultant.score}
@@ -427,7 +423,6 @@ export function RankingCard({
 
               <ManualEvaluationSection consultant={consultant} hideMonetary={hideMonetary} />
 
-              {/* ── Raw Metrics ────────────────────────────────────── */}
               {(() => {
                 const allMetrics = [
                   { icon: Clock, label: "Horas", value: consultant.hoursTracked > 0 ? formatHoursHuman(consultant.hoursTracked) : null },
@@ -438,28 +433,29 @@ export function RankingCard({
                   { icon: PieChart, label: "Projetos", value: consultant.projectCount > 0 ? String(consultant.projectCount) : null },
                   { icon: AlertCircle, label: "Atraso", value: consultant.overdueRate != null ? `${Math.round(consultant.overdueRate)}%` : null },
                 ];
-                const visibleMetrics = allMetrics.filter((m) => m.value != null);
+                const visibleMetrics = allMetrics.filter((metric) => metric.value != null);
                 if (visibleMetrics.length === 0) return null;
-                const colsClass = visibleMetrics.length <= 3
-                  ? `grid-cols-${visibleMetrics.length}`
-                  : visibleMetrics.length <= 4
-                  ? "grid-cols-2 sm:grid-cols-4"
-                  : "grid-cols-2 sm:grid-cols-4 lg:grid-cols-" + Math.min(visibleMetrics.length, 7);
+                const metricsGridClass =
+                  visibleMetrics.length <= 2
+                    ? "grid-cols-1 sm:grid-cols-2"
+                    : visibleMetrics.length <= 4
+                    ? "grid-cols-2 sm:grid-cols-4"
+                    : "grid-cols-2 sm:grid-cols-3 xl:grid-cols-5";
+
                 return (
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground/40 font-semibold mb-2 px-0.5">
                       Métricas do período{periodLabel ? ` (${periodLabel})` : ""}
                     </p>
-                    <div className={`grid gap-2.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-${Math.min(visibleMetrics.length, 7)}`}>
-                      {visibleMetrics.map((m) => (
-                        <MetricTile key={m.label} icon={m.icon} label={m.label} value={m.value} />
+                    <div className={`grid gap-2.5 ${metricsGridClass}`}>
+                      {visibleMetrics.map((metric) => (
+                        <MetricTile key={metric.label} icon={metric.icon} label={metric.label} value={metric.value} />
                       ))}
                     </div>
                   </div>
                 );
               })()}
 
-              {/* ── Disclaimer ─────────────────────────────────────── */}
               <div className="flex items-start gap-2 rounded-lg border border-border/6 bg-card/10 px-3 py-2">
                 <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground/25 mt-0.5" />
                 <p className="text-[11px] text-muted-foreground/40 leading-relaxed">
@@ -474,7 +470,6 @@ export function RankingCard({
   );
 }
 
-/* ── Metric Tile ───────────────────────────────────────────────────── */
 function MetricTile({ icon: Icon, label, value }: { icon: typeof Clock; label: string; value: string | null }) {
   if (value == null) return null;
   return (
