@@ -50,6 +50,7 @@ export default function AppUpdateManager() {
   /* Polling for version.json */
   useEffect(() => {
     let cancelled = false;
+    let lastSeenBuildId: string | null = null;
 
     const check = async () => {
       try {
@@ -62,9 +63,16 @@ export default function AppUpdateManager() {
         if (cancelled || !data?.buildId) return;
 
         if (data.buildId !== __APP_BUILD_ID__) {
+          // Track if this is a NEW version change (different from last seen remote)
+          if (lastSeenBuildId && data.buildId !== lastSeenBuildId) {
+            setVersionChanges((c) => c + 1);
+          }
+          lastSeenBuildId = data.buildId;
           setUpdateAvailable(true);
         } else {
           setUpdateAvailable(false);
+          setVersionChanges(0);
+          setSnoozeCount(0);
         }
       } catch {
         /* best-effort */
@@ -89,9 +97,11 @@ export default function AppUpdateManager() {
 
   /* Actions */
   const handleLater = useCallback(() => {
-    setSnoozedUntil(Date.now() + UPDATE_SNOOZE_MS);
+    const duration = SNOOZE_DURATIONS_MS[Math.min(snoozeCount, SNOOZE_DURATIONS_MS.length - 1)];
+    setSnoozedUntil(Date.now() + duration);
+    setSnoozeCount((c) => c + 1);
     setNow(Date.now());
-  }, []);
+  }, [snoozeCount]);
 
   const handleUpdateNow = useCallback(() => {
     setUpdating(true);
