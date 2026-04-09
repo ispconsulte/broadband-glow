@@ -490,23 +490,14 @@ export default function Sprint6BonificacaoPage() {
     }
 
     return (
-      <>
-        <div className="rounded-2xl border border-border/12 bg-card/35 px-4 py-3.5 sm:px-5">
-          <p className="text-sm font-semibold text-foreground">Meu desempenho</p>
-          <p className="mt-1 text-xs text-muted-foreground/60">
-            Aqui você vê apenas seus dados e sua avaliação mais recente, sem ranking e sem avaliações de outros usuários.
-          </p>
-        </div>
-
-        <BonusUserDetail
-          consultant={myConsultant}
-          expanded={expandedConsultant === myConsultant.name}
-          onToggle={() => setExpandedConsultant(expandedConsultant === myConsultant.name ? null : myConsultant.name)}
-          hideMonetary={true}
-          periodLabel={periodLabel(period)}
-          allTasks={allTasks}
-        />
-      </>
+      <BonusUserDetail
+        consultant={myConsultant}
+        expanded={expandedConsultant === myConsultant.name}
+        onToggle={() => setExpandedConsultant(expandedConsultant === myConsultant.name ? null : myConsultant.name)}
+        hideMonetary={true}
+        periodLabel={periodLabel(period)}
+        allTasks={allTasks}
+      />
     );
   }
 
