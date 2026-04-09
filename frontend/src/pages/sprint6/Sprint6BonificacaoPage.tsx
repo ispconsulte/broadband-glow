@@ -91,8 +91,14 @@ export default function Sprint6BonificacaoPage() {
   const bonus = useBonusRealData(period, session?.accessToken, refreshKey);
   const permissionRole = session?.bonusRole ?? "consultor";
 
-  // Monetary visibility is now name-based, not role-based
-  const hideMonetary = !canSeeMonetary(session?.name);
+  // Three-tier visibility:
+  // Tier 1: Talia (payment manager) → full access, all monetary, all consultants
+  // Tier 2: Rafael, Tiago, Felipe (privileged) → see scores, limited monetary (no payout total)
+  // Tier 3: Everyone else → minimal, own data only, no monetary
+  const isTaliaFullAccess = isPaymentManager(session?.name);
+  const isPrivileged = isPrivilegedCoordinator(session?.name);
+  const hideMonetary = !isTaliaFullAccess; // Only Talia sees monetary values
+  const showScores = isTaliaFullAccess || isPrivileged; // Talia + privileged see scores
   const showPdfReminder = shouldShowPdfReminder(session?.name);
 
   const isCoordinator = permissionRole === "gestor" && (session?.coordinatorOf ?? []).length > 0;
