@@ -67,6 +67,17 @@ function colorForFactor(key: string) {
   return { color: "bg-sky-500", text: "text-sky-400" };
 }
 
+function factorDescription(key: string): string {
+  if (key.includes("on_time")) return "Percentual de tarefas entregues dentro do prazo estabelecido.";
+  if (key.includes("hard")) return "Qualidade técnica das entregas e conformidade documental.";
+  if (key.includes("util")) return "Aproveitamento das horas disponíveis em atividades produtivas.";
+  if (key.includes("soft")) return "Organização, proatividade e comunicação no dia a dia.";
+  if (key.includes("health")) return "Saúde geral da carteira de projetos sob responsabilidade.";
+  if (key.includes("people")) return "Trabalho em equipe, relacionamento com clientes e receptividade.";
+  if (key.includes("risk") || key.includes("atraso")) return "Índice de tarefas com risco de atraso ou já atrasadas.";
+  return "Indicador de desempenho calculado automaticamente.";
+}
+
 /* ── Metrics Grid ─────────────────────────────────── */
 const METRIC_COLORS: Record<string, { bg: string; text: string }> = {
   Horas: { bg: "bg-blue-500/[0.08]", text: "text-blue-400" },
@@ -130,7 +141,7 @@ function CompositionView({ breakdown, score, hideMonetary, maxBonus, payout }: {
         })}
       </div>
 
-      <div className="grid gap-2 grid-cols-2">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
         {breakdown.factors.map((f) => {
           const CfgIcon = iconForFactor(f.key);
           const palette = colorForFactor(f.key);
@@ -138,21 +149,30 @@ function CompositionView({ breakdown, score, hideMonetary, maxBonus, payout }: {
           const contributionPct = Math.round(f.contribution * 100);
           const isGood = f.normalized >= 0.7;
           const isMid = f.normalized >= 0.4;
+          const description = f.explanation || factorDescription(f.key);
           return (
-            <div key={f.key} className="rounded-xl border border-border/8 bg-card/20 p-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${palette.color}/10`}>
-                  <CfgIcon className={`h-3 w-3 ${palette.text}`} />
+            <div key={f.key} className="rounded-xl border border-border/8 bg-card/20 p-4 space-y-2.5">
+              <div className="flex items-start gap-3">
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${palette.color}/10`}>
+                  <CfgIcon className={`h-4.5 w-4.5 ${palette.text}`} />
                 </div>
-                <p className="text-[11px] font-semibold text-foreground truncate flex-1">{f.label}</p>
-                <span className={`text-xs font-bold ${isGood ? "text-emerald-400" : isMid ? "text-amber-400" : "text-red-400"}`}>
-                  {contributionPct}%
-                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-bold text-foreground">{f.label}</p>
+                    <span className={`text-sm font-bold ${isGood ? "text-emerald-400" : isMid ? "text-amber-400" : "text-red-400"}`}>
+                      {contributionPct}%
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/55 mt-0.5 leading-relaxed">{description}</p>
+                </div>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-card/30 overflow-hidden">
-                <div style={{ width: `${normalizedPct}%` }} className={`h-full rounded-full ${palette.color}/50`} />
+              <div className="h-2 w-full rounded-full bg-card/30 overflow-hidden">
+                <div style={{ width: `${normalizedPct}%` }} className={`h-full rounded-full ${palette.color}/50 transition-all`} />
               </div>
-              <p className="text-[10px] text-muted-foreground/50">peso {Math.round(f.weight * 100)}%</p>
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground/40">
+                <span>Eficiência: {normalizedPct}%</span>
+                <span>Contribuição: {contributionPct} de {Math.round(f.weight * 100)} pts</span>
+              </div>
             </div>
           );
         })}
@@ -279,8 +299,10 @@ export function BonusUserDetail({
   const userTasks = useMemo(() => {
     if (!consultant.name) return [];
     return allTasks.filter((t) => {
-      const resp = String(t.responsible ?? t.responsavel ?? "");
-      return isNameMatch(resp, consultant.name);
+      const candidates = [
+        t.responsible, t.responsavel, t.responsible_name, t.consultant, t.owner,
+      ].filter(Boolean).map(String);
+      return candidates.some((c) => isNameMatch(c, consultant.name));
     });
   }, [allTasks, consultant.name]);
 

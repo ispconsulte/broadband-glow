@@ -10,6 +10,9 @@ import {
   Users,
   FileText,
   Calendar,
+  Filter,
+  X,
+  CalendarDays,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -84,6 +87,10 @@ export default function Sprint6BonificacaoPage() {
   const { session, loadingSession } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [period, setPeriod] = useState<RoiPeriod>("180d");
+  const [customDateFrom, setCustomDateFrom] = useState("");
+  const [customDateTo, setCustomDateTo] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [consultantFilter, setConsultantFilter] = useState("");
   const [activeMainTab, setActiveMainTab] = useState("ranking");
   const [search, setSearch] = useState("");
   const [evaluationFilter, setEvaluationFilter] = useState<"all" | "evaluated" | "pending">("all");
@@ -271,23 +278,111 @@ export default function Sprint6BonificacaoPage() {
             </div>
           </div>
 
-          {/* Period filters — outside header */}
+          {/* Filter bar */}
           <div className="flex flex-wrap items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-            {PERIOD_OPTIONS.map((opt) => (
+            <div className="relative">
               <button
-                key={opt.value}
                 type="button"
-                onClick={() => setPeriod(opt.value)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                  period === opt.value
-                    ? "bg-primary/20 text-primary border border-primary/30"
-                    : "bg-card/30 text-muted-foreground/60 border border-border/15 hover:bg-card/50 hover:text-foreground/80"
-                }`}
+                onClick={() => setFilterOpen(!filterOpen)}
+                className="flex items-center gap-2 rounded-xl border border-border/15 bg-card/40 px-4 py-2 text-xs font-semibold text-foreground/80 transition-all hover:bg-card/60"
               >
-                {opt.label}
+                <Filter className="h-3.5 w-3.5 text-muted-foreground/50" />
+                Filtros
+                {(period !== "180d" || customDateFrom || consultantFilter) && (
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[9px] font-bold text-primary">
+                    {[period !== "180d", customDateFrom, consultantFilter].filter(Boolean).length}
+                  </span>
+                )}
               </button>
-            ))}
+
+              {filterOpen && (
+                <div className="absolute left-0 top-full z-30 mt-1.5 w-72 rounded-xl border border-border/15 bg-card/95 p-4 shadow-xl backdrop-blur-xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-foreground">Filtros</p>
+                    <button type="button" onClick={() => setFilterOpen(false)} className="text-muted-foreground/40 hover:text-foreground">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Period */}
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold">Período</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {PERIOD_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => { setPeriod(opt.value); setCustomDateFrom(""); setCustomDateTo(""); }}
+                          className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                            period === opt.value && !customDateFrom
+                              ? "bg-primary/20 text-primary border border-primary/30"
+                              : "bg-card/40 text-muted-foreground/60 border border-border/10 hover:bg-card/60"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom date range */}
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold flex items-center gap-1">
+                      <CalendarDays className="h-3 w-3" /> Período personalizado
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="date"
+                        value={customDateFrom}
+                        onChange={(e) => setCustomDateFrom(e.target.value)}
+                        className="rounded-lg border border-border/15 bg-card/30 px-2 py-1.5 text-[11px] text-foreground outline-none focus:border-primary/30"
+                      />
+                      <input
+                        type="date"
+                        value={customDateTo}
+                        onChange={(e) => setCustomDateTo(e.target.value)}
+                        className="rounded-lg border border-border/15 bg-card/30 px-2 py-1.5 text-[11px] text-foreground outline-none focus:border-primary/30"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Consultant filter (for Thalia) */}
+                  {isTaliaFullAccess && (
+                    <div className="space-y-1.5">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold">Consultor</p>
+                      <select
+                        value={consultantFilter}
+                        onChange={(e) => setConsultantFilter(e.target.value)}
+                        className="w-full rounded-lg border border-border/15 bg-card/30 px-2 py-1.5 text-[11px] text-foreground outline-none focus:border-primary/30"
+                      >
+                        <option value="">Todos os consultores</option>
+                        {bonus.consultants.map((c) => (
+                          <option key={c.userId ?? c.name} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Clear */}
+                  {(period !== "180d" || customDateFrom || consultantFilter) && (
+                    <button
+                      type="button"
+                      onClick={() => { setPeriod("180d"); setCustomDateFrom(""); setCustomDateTo(""); setConsultantFilter(""); }}
+                      className="w-full rounded-lg border border-border/10 bg-card/20 py-1.5 text-[11px] font-semibold text-muted-foreground/60 hover:text-foreground/80 transition-colors"
+                    >
+                      Limpar filtros
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Active filter chips */}
+            <span className="text-[11px] text-muted-foreground/50">
+              {PERIOD_OPTIONS.find((o) => o.value === period)?.label ?? "Semestral"}
+              {customDateFrom && ` · ${customDateFrom}${customDateTo ? ` a ${customDateTo}` : ""}`}
+              {consultantFilter && ` · ${consultantFilter}`}
+            </span>
           </div>
 
           {showPdfReminder && (
