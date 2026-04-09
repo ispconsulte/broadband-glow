@@ -100,31 +100,27 @@ export default function SuportePage() {
           subtitle="Tire suas dúvidas com as perguntas frequentes."
         />
 
-        <div className="mt-5 space-y-5">
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-white/[0.07] bg-[linear-gradient(135deg,hsl(260_30%_11%),hsl(262_35%_15%))] p-4 shadow-lg shadow-black/20">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-[linear-gradient(145deg,hsl(262_60%_25%/0.5),hsl(262_40%_18%/0.4))]">
-                  <AlertTriangle className="h-4 w-4 text-[hsl(var(--task-yellow))]" />
-                </div>
-                <p className="pt-0.5 text-sm leading-relaxed text-[hsl(var(--task-text-muted))]">
-                  Para <strong className="text-[hsl(var(--task-text))]">alteração de senha</strong> ou qualquer problema de acesso, entre em contato diretamente com seu <strong className="text-[hsl(var(--task-text))]">consultor responsável</strong>.
-                </p>
+        <div className="mt-5 space-y-4">
+          <div className="rounded-2xl border border-white/[0.07] bg-[linear-gradient(135deg,hsl(260_30%_11%),hsl(262_35%_15%))] p-4 shadow-lg shadow-black/20">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-[linear-gradient(145deg,hsl(262_60%_25%/0.5),hsl(262_40%_18%/0.4))]">
+                <AlertTriangle className="h-4 w-4 text-[hsl(var(--task-yellow))]" />
               </div>
+              <p className="pt-0.5 text-sm leading-relaxed text-[hsl(var(--task-text-muted))]">
+                Para <strong className="text-[hsl(var(--task-text))]">alteração de senha</strong> ou qualquer problema de acesso, entre em contato diretamente com seu <strong className="text-[hsl(var(--task-text))]">consultor responsável</strong>.
+              </p>
             </div>
+          </div>
 
-            <div className="w-full max-w-5xl">
-            {/* Search */}
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[hsl(var(--task-text-muted)/0.7)]" />
-              <input
-                value={faqSearch}
-                onChange={(e) => setFaqSearch(e.target.value)}
-                placeholder="Buscar dúvidas..."
-                className="h-11 w-full rounded-2xl border border-[hsl(var(--task-border))] bg-[hsl(var(--task-surface))] pl-11 pr-4 text-sm text-[hsl(var(--task-text))] outline-none transition focus:border-[hsl(var(--task-purple)/0.5)] placeholder:text-[hsl(var(--task-text-muted)/0.45)]"
-              />
-            </div>
-            </div>
+          {/* Search */}
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[hsl(var(--task-text-muted)/0.7)]" />
+            <input
+              value={faqSearch}
+              onChange={(e) => setFaqSearch(e.target.value)}
+              placeholder="Buscar dúvidas..."
+              className="h-11 w-full rounded-2xl border border-[hsl(var(--task-border))] bg-[hsl(var(--task-surface))] pl-11 pr-4 text-sm text-[hsl(var(--task-text))] outline-none transition focus:border-[hsl(var(--task-purple)/0.5)] placeholder:text-[hsl(var(--task-text-muted)/0.45)]"
+            />
           </div>
 
           {/* FAQ */}
