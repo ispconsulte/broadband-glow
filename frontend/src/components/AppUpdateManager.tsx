@@ -25,7 +25,8 @@ export default function AppUpdateManager() {
 
   /* Re-check snooze timer */
   const [now, setNow] = useState(Date.now());
-  const modalOpen = updateAvailable && now >= snoozedUntil;
+  const isLoginPage = location.pathname === "/login" || location.pathname === "/";
+  const modalOpen = updateAvailable && now >= snoozedUntil && !isLoginPage;
 
   /* Restore context on mount (post-update) */
   useEffect(() => {
