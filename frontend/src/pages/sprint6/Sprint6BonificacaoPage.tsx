@@ -106,6 +106,13 @@ export default function Sprint6BonificacaoPage() {
   const bonus = useBonusRealData(period, session?.accessToken, refreshKey);
   const sharedTasks = useSharedTasks();
   const allTasks = sharedTasks?.tasks ?? [];
+
+  // Defensive: log crash-prone values on mount to help diagnose ErrorBoundary triggers
+  useEffect(() => {
+    if (bonus.error) {
+      console.warn("[Bonificação] Hook error:", bonus.error);
+    }
+  }, [bonus.error]);
   const permissionRole = session?.bonusRole ?? "consultor";
 
   const isTaliaFullAccess = isPaymentManager(session?.name);
