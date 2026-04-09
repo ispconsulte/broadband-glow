@@ -6,6 +6,7 @@
       "name": "dashboard-isp-workspace",
       "dependencies": {
         "date-fns": "^4.1.0",
+        "react-day-picker": "^8.10.1",
       },
     },
     "frontend": {
@@ -49,6 +50,7 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
+        "date-fns": "^4.1.0",
         "embla-carousel-react": "^8.6.0",
         "framer-motion": "^12.34.0",
         "input-otp": "^1.4.2",
@@ -1113,7 +1115,7 @@
 
     "react": ["react@19.2.3", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react/-/react-19.2.3.tgz", {}, ""],
 
-    "react-day-picker": ["react-day-picker@9.13.2", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-day-picker/-/react-day-picker-9.13.2.tgz", { "dependencies": { "@date-fns/tz": "^1.4.1", "date-fns": "^4.1.0", "date-fns-jalali": "^4.1.0-0" }, "peerDependencies": { "react": ">=16.8.0" } }, ""],
+    "react-day-picker": ["react-day-picker@8.10.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-day-picker/-/react-day-picker-8.10.1.tgz", { "peerDependencies": { "date-fns": "^2.28.0 || ^3.0.0", "react": "^16.8.0 || ^17.0.0 || ^18.0.0" } }, "sha512-TMx7fNbhLk15eqcMt+7Z7S2KF7mfTId/XJDjKE8f+IUcFn0l08/kI4FiYTL/0yuOLmEcbR4Fwe3GJf/NiiMnPA=="],
 
     "react-dom": ["react-dom@19.2.3", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-dom/-/react-dom-19.2.3.tgz", { "dependencies": { "scheduler": "^0.27.0" }, "peerDependencies": { "react": "^19.2.3" } }, ""],
 
@@ -1450,6 +1452,8 @@
     "lru-cache/yallist": ["yallist@3.1.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/yallist/-/yallist-3.1.1.tgz", {}, ""],
 
     "micromatch/picomatch": ["picomatch@2.3.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/picomatch/-/picomatch-2.3.1.tgz", {}, ""],
+
+    "painel-admin/react-day-picker": ["react-day-picker@9.13.2", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-day-picker/-/react-day-picker-9.13.2.tgz", { "dependencies": { "@date-fns/tz": "^1.4.1", "date-fns": "^4.1.0", "date-fns-jalali": "^4.1.0-0" }, "peerDependencies": { "react": ">=16.8.0" } }, ""],
 
     "readdirp/picomatch": ["picomatch@2.3.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/picomatch/-/picomatch-2.3.1.tgz", {}, ""],
 
