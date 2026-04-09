@@ -21,12 +21,15 @@ export default function AppUpdateManager() {
   const location = useLocation();
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [snoozedUntil, setSnoozedUntil] = useState(0);
+  const [snoozeCount, setSnoozeCount] = useState(0);
   const [updating, setUpdating] = useState(false);
+  const [versionChanges, setVersionChanges] = useState(0); // how many distinct builds detected
 
   /* Re-check snooze timer */
   const [now, setNow] = useState(Date.now());
   const isLoginPage = location.pathname === "/login" || location.pathname === "/";
   const modalOpen = updateAvailable && now >= snoozedUntil && !isLoginPage;
+  const isUrgent = snoozeCount >= 3 || versionChanges >= 2;
 
   /* Restore context on mount (post-update) */
   useEffect(() => {
