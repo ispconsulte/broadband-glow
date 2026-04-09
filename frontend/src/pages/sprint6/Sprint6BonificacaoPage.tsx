@@ -498,14 +498,13 @@ export default function Sprint6BonificacaoPage() {
           </p>
         </div>
 
-        <RankingCard
+        <BonusUserDetail
           consultant={myConsultant}
-          rank={1}
-          showRank={false}
           expanded={expandedConsultant === myConsultant.name}
           onToggle={() => setExpandedConsultant(expandedConsultant === myConsultant.name ? null : myConsultant.name)}
           hideMonetary={true}
           periodLabel={periodLabel(period)}
+          allTasks={allTasks}
         />
       </>
     );
