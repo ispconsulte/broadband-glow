@@ -351,7 +351,7 @@ export default function Sprint6BonificacaoPage() {
               )}
 
               {/* ── Main tabs (coordinator/admin get team tab) ─────── */}
-              {(isCoordinator || isAdmin) ? (
+              {(isCoordinator || isAdmin || isTaliaFullAccess) ? (
                 <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="space-y-4">
                   <TabsList className="h-auto rounded-xl bg-card/40 border border-border/10 p-1">
                     <TabsTrigger
@@ -359,7 +359,7 @@ export default function Sprint6BonificacaoPage() {
                       className="rounded-lg text-xs font-semibold px-4 py-2 data-[state=active]:bg-primary/12 data-[state=active]:text-primary data-[state=inactive]:text-muted-foreground/60"
                     >
                       <Crown className="h-3.5 w-3.5 mr-1.5" />
-                      {hideMonetary ? "Meu Ranking" : "Ranking Geral"}
+                      {showScores ? "Ranking Geral" : "Meu Ranking"}
                     </TabsTrigger>
                     {isCoordinator && (
                       <TabsTrigger
@@ -375,7 +375,7 @@ export default function Sprint6BonificacaoPage() {
                         )}
                       </TabsTrigger>
                     )}
-                    {isAdmin && (
+                    {(isAdmin || isTaliaFullAccess) && (
                       <TabsTrigger
                         value="all-evaluations"
                         className="rounded-lg text-xs font-semibold px-4 py-2 data-[state=active]:bg-primary/12 data-[state=active]:text-primary data-[state=inactive]:text-muted-foreground/60"
@@ -404,8 +404,8 @@ export default function Sprint6BonificacaoPage() {
                     </TabsContent>
                   )}
 
-                  {/* All evaluations tab (admin/distributor) */}
-                  {isAdmin && (
+                  {/* All evaluations tab (Talia + admin) */}
+                  {(isAdmin || isTaliaFullAccess) && (
                     <TabsContent value="all-evaluations" className="mt-0">
                       <BonusTeamTab
                         subordinates={bonus.consultants}
@@ -418,7 +418,7 @@ export default function Sprint6BonificacaoPage() {
                   )}
                 </Tabs>
               ) : (
-                /* No tabs for regular consultants */
+                /* No tabs for regular users */
                 <div className="space-y-3">
                   {renderRankingContent()}
                 </div>
