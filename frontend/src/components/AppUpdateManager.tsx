@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { RefreshCw, ShieldCheck, Sparkles, Rocket } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { consumeUpdateContext, saveUpdateContext } from "@/lib/appUpdate";
 import { motion } from "framer-motion";
