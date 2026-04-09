@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { RefreshCw, ShieldCheck, Sparkles, Rocket } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { consumeUpdateContext, saveUpdateContext } from "@/lib/appUpdate";
 import { motion } from "framer-motion";
@@ -109,6 +109,9 @@ export default function AppUpdateManager() {
         ].join(" ")}
       >
         <DialogTitle className="sr-only">Atualização disponível</DialogTitle>
+        <DialogDescription className="sr-only">
+          Uma nova versão do sistema está disponível. Você pode atualizar agora ou continuar e atualizar depois.
+        </DialogDescription>
 
         {/* ── Decorative glows ── */}
         <motion.div
