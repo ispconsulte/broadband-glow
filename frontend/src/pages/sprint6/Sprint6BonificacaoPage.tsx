@@ -457,7 +457,7 @@ export default function Sprint6BonificacaoPage() {
             </div>
           )}
 
-          {bonus.error && (
+          {bonus.error && !bonus.loading && (
             <div className="rounded-xl border border-amber-500/15 bg-amber-500/[0.04] px-5 py-4 text-sm text-amber-200 space-y-1">
               <p className="font-semibold">Parece que encontramos um problema</p>
               <p className="text-xs text-amber-200/70 leading-relaxed">
