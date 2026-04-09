@@ -284,111 +284,147 @@ export default function Sprint6BonificacaoPage() {
             </div>
           </div>
 
-          {/* Filter bar */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setFilterOpen(!filterOpen)}
-                className="flex items-center gap-2 rounded-xl border border-border/15 bg-card/40 px-4 py-2 text-xs font-semibold text-foreground/80 transition-all hover:bg-card/60"
-              >
-                <Filter className="h-3.5 w-3.5 text-muted-foreground/50" />
-                Filtros
-                {(period !== "180d" || customDateFrom || consultantFilter) && (
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[9px] font-bold text-primary">
-                    {[period !== "180d", customDateFrom, consultantFilter].filter(Boolean).length}
-                  </span>
-                )}
-              </button>
-
-              {filterOpen && (
-                <div className="absolute left-0 top-full z-30 mt-1.5 w-72 rounded-xl border border-border/15 bg-card/95 p-4 shadow-xl backdrop-blur-xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold text-foreground">Filtros</p>
-                    <button type="button" onClick={() => setFilterOpen(false)} className="text-muted-foreground/40 hover:text-foreground">
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-
-                  {/* Period */}
-                  <div className="space-y-1.5">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold">Período</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {PERIOD_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => { setPeriod(opt.value); setCustomDateFrom(""); setCustomDateTo(""); }}
-                          className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
-                            period === opt.value && !customDateFrom
-                              ? "bg-primary/20 text-primary border border-primary/30"
-                              : "bg-card/40 text-muted-foreground/60 border border-border/10 hover:bg-card/60"
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Custom date range */}
-                  <div className="space-y-1.5">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold flex items-center gap-1">
-                      <CalendarDays className="h-3 w-3" /> Período personalizado
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="date"
-                        value={customDateFrom}
-                        onChange={(e) => setCustomDateFrom(e.target.value)}
-                        className="rounded-lg border border-border/15 bg-card/30 px-2 py-1.5 text-[11px] text-foreground outline-none focus:border-primary/30"
-                      />
-                      <input
-                        type="date"
-                        value={customDateTo}
-                        onChange={(e) => setCustomDateTo(e.target.value)}
-                        className="rounded-lg border border-border/15 bg-card/30 px-2 py-1.5 text-[11px] text-foreground outline-none focus:border-primary/30"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Consultant filter (for Thalia) */}
-                  {isTaliaFullAccess && (
-                    <div className="space-y-1.5">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold">Consultor</p>
-                      <select
-                        value={consultantFilter}
-                        onChange={(e) => setConsultantFilter(e.target.value)}
-                        className="w-full rounded-lg border border-border/15 bg-card/30 px-2 py-1.5 text-[11px] text-foreground outline-none focus:border-primary/30"
-                      >
-                        <option value="">Todos os consultores</option>
-                        {bonus.consultants.map((c) => (
-                          <option key={c.userId ?? c.name} value={c.name}>{c.name}</option>
-                        ))}
-                      </select>
-                    </div>
+          {/* Filter bar — centered */}
+          <div className="flex justify-center">
+            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 rounded-xl border-border/15 bg-card/40 px-5 py-2.5 text-xs font-semibold text-foreground/80 hover:bg-card/60"
+                >
+                  <Filter className="h-3.5 w-3.5 text-muted-foreground/50" />
+                  Filtros
+                  {(period !== "180d" || dateFrom || consultantFilter) && (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary">
+                      {[period !== "180d", !!dateFrom, !!consultantFilter].filter(Boolean).length}
+                    </span>
                   )}
-
-                  {/* Clear */}
-                  {(period !== "180d" || customDateFrom || consultantFilter) && (
-                    <button
-                      type="button"
-                      onClick={() => { setPeriod("180d"); setCustomDateFrom(""); setCustomDateTo(""); setConsultantFilter(""); }}
-                      className="w-full rounded-lg border border-border/10 bg-card/20 py-1.5 text-[11px] font-semibold text-muted-foreground/60 hover:text-foreground/80 transition-colors"
-                    >
-                      Limpar filtros
-                    </button>
-                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="center" sideOffset={8} className="w-80 rounded-2xl border-border/15 bg-card p-5 shadow-2xl backdrop-blur-xl space-y-5">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-bold text-foreground">Filtros</p>
+                  <button type="button" onClick={() => setFilterOpen(false)} className="text-muted-foreground/40 hover:text-foreground transition-colors">
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-              )}
-            </div>
 
-            {/* Active filter chips */}
-            <span className="text-[11px] text-muted-foreground/50">
-              {PERIOD_OPTIONS.find((o) => o.value === period)?.label ?? "Semestral"}
-              {customDateFrom && ` · ${customDateFrom}${customDateTo ? ` a ${customDateTo}` : ""}`}
-              {consultantFilter && ` · ${consultantFilter}`}
-            </span>
+                {/* Period */}
+                <div className="space-y-2">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold">Período</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PERIOD_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => { setPeriod(opt.value); setDateFrom(undefined); setDateTo(undefined); }}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                          period === opt.value && !dateFrom
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-secondary/50 text-muted-foreground border border-border/10 hover:bg-secondary"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom date range with Calendar popovers */}
+                <div className="space-y-2">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold flex items-center gap-1.5">
+                    <CalendarDays className="h-3 w-3" /> Período personalizado
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "justify-start text-left text-xs font-normal h-9 rounded-lg border-border/15 bg-secondary/30",
+                            !dateFrom && "text-muted-foreground/50"
+                          )}
+                        >
+                          <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                          {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "De"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 rounded-xl border-border/15 bg-card shadow-2xl" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={dateFrom}
+                          onSelect={setDateFrom}
+                          locale={ptBR}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "justify-start text-left text-xs font-normal h-9 rounded-lg border-border/15 bg-secondary/30",
+                            !dateTo && "text-muted-foreground/50"
+                          )}
+                        >
+                          <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                          {dateTo ? format(dateTo, "dd/MM/yyyy") : "Até"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 rounded-xl border-border/15 bg-card shadow-2xl" align="end">
+                        <Calendar
+                          mode="single"
+                          selected={dateTo}
+                          onSelect={setDateTo}
+                          locale={ptBR}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+
+                {/* Consultant filter (for Thalia) */}
+                {isTaliaFullAccess && (
+                  <div className="space-y-2">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold">Consultor</p>
+                    <select
+                      value={consultantFilter}
+                      onChange={(e) => setConsultantFilter(e.target.value)}
+                      className="w-full rounded-lg border border-border/15 bg-secondary/30 px-3 py-2 text-xs text-foreground outline-none focus:border-primary/40 transition-colors"
+                    >
+                      <option value="">Todos os consultores</option>
+                      {bonus.consultants.map((c) => (
+                        <option key={c.userId ?? c.name} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Clear */}
+                {(period !== "180d" || dateFrom || consultantFilter) && (
+                  <button
+                    type="button"
+                    onClick={() => { setPeriod("180d"); setDateFrom(undefined); setDateTo(undefined); setConsultantFilter(""); }}
+                    className="w-full rounded-lg border border-border/10 bg-secondary/20 py-2 text-xs font-semibold text-muted-foreground/60 hover:text-foreground/80 transition-colors"
+                  >
+                    Limpar filtros
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            {/* Active filter summary */}
+            {(period !== "180d" || dateFrom || consultantFilter) && (
+              <span className="ml-3 self-center text-xs text-muted-foreground/50">
+                {PERIOD_OPTIONS.find((o) => o.value === period)?.label ?? "Semestral"}
+                {dateFrom && ` · ${format(dateFrom, "dd/MM/yyyy")}${dateTo ? ` a ${format(dateTo, "dd/MM/yyyy")}` : ""}`}
+                {consultantFilter && ` · ${consultantFilter}`}
+              </span>
+            )}
           </div>
 
           {showPdfReminder && (
