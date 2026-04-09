@@ -103,9 +103,17 @@ export default function Sprint6BonificacaoPage() {
   const [expandedConsultant, setExpandedConsultant] = useState<string | null>(null);
   const [evaluationConsultant, setEvaluationConsultant] = useState<BonusConsultantCard | null>(null);
   const [reportConsultant, setReportConsultant] = useState<BonusConsultantCard | null>(null);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const bonus = useBonusRealData(period, session?.accessToken, refreshKey);
   const sharedTasks = useSharedTasks();
   const allTasks = sharedTasks?.tasks ?? [];
+
+  // Track first successful load to prevent flickering empty/error states
+  useEffect(() => {
+    if (!bonus.loading && !hasLoadedOnce) {
+      setHasLoadedOnce(true);
+    }
+  }, [bonus.loading, hasLoadedOnce]);
 
   // Defensive: log crash-prone values on mount to help diagnose ErrorBoundary triggers
   useEffect(() => {
