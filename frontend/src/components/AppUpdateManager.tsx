@@ -96,7 +96,7 @@ export default function AppUpdateManager() {
   }, [location]);
 
   return (
-    <Dialog open={modalOpen}>
+    <Dialog open={modalOpen} onOpenChange={(open) => { if (!open) handleLater(); }}>
       <DialogContent
         className={[
           "w-[92vw] max-w-[460px] p-0 overflow-hidden",
@@ -107,8 +107,6 @@ export default function AppUpdateManager() {
           "rounded-2xl sm:rounded-3xl",
           "max-h-[95vh]",
         ].join(" ")}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-        onPointerDownOutside={(e) => e.preventDefault()}
       >
         <DialogTitle className="sr-only">Atualização disponível</DialogTitle>
 
