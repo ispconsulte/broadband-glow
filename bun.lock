@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "dashboard-isp-workspace",
+      "dependencies": {
+        "date-fns": "^4.1.0",
+      },
     },
     "frontend": {
       "name": "painel-admin",
