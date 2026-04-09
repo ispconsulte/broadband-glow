@@ -118,12 +118,16 @@ function CompositionView({ breakdown, score, hideMonetary, maxBonus, payout }: {
     <div className="space-y-3">
       {best && worst && best.key !== worst.key && (
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/15 bg-emerald-500/[0.06] px-3 py-1 text-[11px] font-medium text-emerald-300">
-            <TrendingUp className="h-3 w-3" /> {best.label}
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/15 bg-red-500/[0.06] px-3 py-1 text-[11px] font-medium text-red-300">
-            <TrendingDown className="h-3 w-3" /> {worst.label}
-          </span>
+          {(() => { const p = colorForFactor(best.key); return (
+            <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium" style={{ border: `1px solid ${p.bg}`, backgroundColor: p.bgLight, color: p.bg.replace("0.6", "1") }}>
+              <TrendingUp className="h-3 w-3" /> {best.label}
+            </span>
+          ); })()}
+          {(() => { const p = colorForFactor(worst.key); return (
+            <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium" style={{ border: `1px solid ${p.bg}`, backgroundColor: p.bgLight, color: p.bg.replace("0.6", "1") }}>
+              <TrendingDown className="h-3 w-3" /> {worst.label}
+            </span>
+          ); })()}
         </div>
       )}
 
